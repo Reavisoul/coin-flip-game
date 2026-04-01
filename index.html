@@ -800,7 +800,7 @@ function resolveFlip() {
     }
   }
 
-  return { isHeads, goldChanged: state.gold > prevGold };
+  return { isHeads, goldChanged: state.gold > prevGold, earned: state.gold - prevGold };
 }
 
 // ── Flip Controller ──
@@ -813,13 +813,13 @@ async function startFlip(count) {
 
   if (count === 1) {
     clearResultText();
-    const { isHeads, goldChanged } = resolveFlip();
+    const { isHeads, earned } = resolveFlip();
     await animateFlip(isHeads);
 
     if (isHeads) {
-      showResultText(`正面！+${state.goldPerHeads} 金币`, 'heads-result');
+      showResultText(`正面！+${earned} 金币`, 'heads-result');
       const rect = coinEl.getBoundingClientRect();
-      spawnFloatText(`+${state.goldPerHeads}`, '#ffd700', rect.left + rect.width / 2 - 15, rect.top);
+      spawnFloatText(`+${earned}`, '#ffd700', rect.left + rect.width / 2 - 15, rect.top);
     } else {
       showResultText('反面...', 'tails-result');
       gameEl.classList.add('shake');
@@ -834,15 +834,15 @@ async function startFlip(count) {
     for (let i = 0; i < count; i++) {
       if (state.stopRequested) break;
       clearResultText();
-      const { isHeads, goldChanged } = resolveFlip();
+      const { isHeads, earned } = resolveFlip();
       done = i + 1;
 
       await animateFlip(isHeads);
 
       if (isHeads) {
-        showResultText(`正面！+${state.goldPerHeads} 金币 (${done}/${count})`, 'heads-result');
+        showResultText(`正面！+${earned} 金币 (${done}/${count})`, 'heads-result');
         const rect = coinEl.getBoundingClientRect();
-        spawnFloatText(`+${state.goldPerHeads}`, '#ffd700', rect.left + rect.width / 2 - 15, rect.top);
+        spawnFloatText(`+${earned}`, '#ffd700', rect.left + rect.width / 2 - 15, rect.top);
       } else {
         showResultText(`反面... (${done}/${count})`, 'tails-result');
         gameEl.classList.add('shake');
