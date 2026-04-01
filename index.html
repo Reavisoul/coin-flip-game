@@ -607,6 +607,8 @@ const state = {
   pityLevel: 0,
   tailStreak: 0,
   totalSpent: 0,
+  hasSkin: false,
+  comboLevel: 0,
   eggPity: 0,        // 连续未出新宠物次数
   pets: [],         // owned pet IDs
   // runtime (not saved)
@@ -644,6 +646,24 @@ const shopItemDefs = [
     getExtra: () => state.pityLevel > 0 ? `当前每10次反面 +${state.pityLevel * 3}g (${state.pityLevel}/10)` : '',
     canBuy: () => state.pityLevel < 10,
     apply: () => { state.pityLevel++; },
+  },
+  {
+    id: 'skin', name: '海淀特供金币皮肤', desc: '正面👍 反面🖕',
+    getPrice: () => 8888,
+    getExtra: () => state.hasSkin ? '已解锁' : '',
+    canBuy: () => !state.hasSkin,
+    apply: () => {
+      state.hasSkin = true;
+      document.querySelector('.coin-front').textContent = '👍';
+      document.querySelector('.coin-back').textContent = '🖕';
+    },
+  },
+  {
+    id: 'combo', name: '连击加成', desc: '连续正面第N次额外 +N×等级 金币',
+    getPrice: () => Math.floor(100 + state.comboLevel * 200 + state.comboLevel * state.comboLevel * 120),
+    getExtra: () => state.comboLevel > 0 ? `当前等级 ${state.comboLevel} (10连额外 +${45 * state.comboLevel}g)` : '',
+    canBuy: () => state.comboLevel < 15,
+    apply: () => { state.comboLevel++; },
   },
   {
     id: 'mystery', name: '？？？', desc: '？？？', isMystery: true,
@@ -762,6 +782,7 @@ function resolveFlip() {
   if (isHeads) {
     state.gold += state.goldPerHeads;
     state.streak++;
+    if (state.comboLevel > 0) state.gold += state.streak * state.comboLevel;
     if (state.streak >= 10) {
       state.completions++;
       state.streak = 0;
@@ -1157,7 +1178,7 @@ function saveGame() {
     completions: state.completions,
     speedLevel: state.speedLevel, probLevel: state.probLevel,
     goldLevel: state.goldLevel, pityLevel: state.pityLevel,
-    tailStreak: state.tailStreak, totalSpent: state.totalSpent, eggPity: state.eggPity, pets: state.pets,
+    tailStreak: state.tailStreak, totalSpent: state.totalSpent, hasSkin: state.hasSkin, comboLevel: state.comboLevel, eggPity: state.eggPity, pets: state.pets,
   }));
 }
 
@@ -1208,6 +1229,7 @@ function checkUpdate() {
 
 // ── Init ──
 loadGame();
+if (state.hasSkin) { document.querySelector('.coin-front').textContent = '👍'; document.querySelector('.coin-back').textContent = '🖕'; }
 updateUI();
 restoreAllPets();
 checkUpdate();
