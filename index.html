@@ -349,6 +349,19 @@ body {
   0%, 100% { margin-top: 0; }
   50% { margin-top: -6px; }
 }
+@keyframes petWiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+.pet-heart {
+  position: fixed; font-size: 16px; pointer-events: none; z-index: 10;
+  animation: heartFloat 0.8s ease-out forwards;
+}
+@keyframes heartFloat {
+  0% { opacity: 1; transform: translateY(0) scale(0.5); }
+  100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
+}
 @keyframes rainbow {
   0% { filter: hue-rotate(0deg); }
   100% { filter: hue-rotate(360deg); }
@@ -977,6 +990,53 @@ function spawnPetOnScreen(pet) {
   const startY = 40 + Math.random() * (window.innerHeight - 120);
   el.style.left = startX + 'px';
   el.style.top = startY + 'px';
+
+  // Pet drag
+  let petDragging = false, pox, poy;
+  el.addEventListener('mousedown', e => {
+    e.preventDefault(); petDragging = true;
+    pox = e.clientX - parseFloat(el.style.left);
+    poy = e.clientY - parseFloat(el.style.top);
+    el.style.transition = 'none'; el.style.zIndex = '20';
+  });
+  el.addEventListener('touchstart', e => {
+    const t = e.touches[0]; petDragging = true;
+    pox = t.clientX - parseFloat(el.style.left);
+    poy = t.clientY - parseFloat(el.style.top);
+    el.style.transition = 'none'; el.style.zIndex = '20';
+  }, { passive: true });
+  window.addEventListener('mousemove', e => {
+    if (!petDragging) return;
+    el.style.left = (e.clientX - pox) + 'px';
+    el.style.top = (e.clientY - poy) + 'px';
+  });
+  window.addEventListener('touchmove', e => {
+    if (!petDragging) return;
+    const t = e.touches[0];
+    el.style.left = (t.clientX - pox) + 'px';
+    el.style.top = (t.clientY - poy) + 'px';
+  });
+  window.addEventListener('mouseup', () => {
+    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = ''; }
+  });
+  window.addEventListener('touchend', () => {
+    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = ''; }
+  });
+
+  el.addEventListener('click', () => {
+    el.style.animation = 'none'; el.offsetHeight;
+    el.style.animation = 'petWiggle 0.4s ease, petBounce 1.2s ease-in-out infinite 0.4s';
+    for (let i = 0; i < 4; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'pet-heart';
+      heart.textContent = '❤';
+      heart.style.left = (parseFloat(el.style.left) + 10 + Math.random() * 24) + 'px';
+      heart.style.top = (parseFloat(el.style.top) - 5) + 'px';
+      heart.style.animationDelay = (i * 0.1) + 's';
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 1000);
+    }
+  });
 
   document.body.appendChild(el);
   petElements.push(el);
