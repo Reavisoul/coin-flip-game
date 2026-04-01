@@ -1084,9 +1084,6 @@ function loadGame() {
 // ── Version & Changelog ──
 const GAME_VERSION = '1.5';
 const CHANGELOG = {
-  '1.5': [
-    '补偿福利！发放 10000 金币启动资金，感谢大家的支持~',
-  ],
   '1.4': [
     '我们改善了游玩体验和UI体验~',
   ],
@@ -1107,11 +1104,6 @@ function checkUpdate() {
   const key = 'coin_flip_last_version';
   const last = localStorage.getItem(key);
   if (last === GAME_VERSION) return;
-  // 1.5 补偿金币
-  if (!last || last < '1.5') {
-    state.gold += 10000;
-    saveGame();
-  }
   localStorage.setItem(key, GAME_VERSION);
   const versions = Object.keys(CHANGELOG);
   const lastIdx = last ? versions.indexOf(last) : -1;
