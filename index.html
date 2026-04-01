@@ -648,14 +648,22 @@ const shopItemDefs = [
     apply: () => { state.pityLevel++; },
   },
   {
-    id: 'skin', name: '海淀特供金币皮肤', desc: '买了就知道了~',
-    getPrice: () => 8888,
-    getExtra: () => state.hasSkin ? '已解锁' : '',
-    canBuy: () => !state.hasSkin,
+    id: 'skin',
+    get name() { return state.hasSkin ? '恢复经典皮肤' : '海淀特供金币皮肤'; },
+    get desc() { return state.hasSkin ? '回到最初的样子' : '买了就知道了~'; },
+    getPrice: () => state.hasSkin ? 3000000 : 8888,
+    getExtra: () => '',
+    canBuy: () => true,
     apply: () => {
-      state.hasSkin = true;
-      document.querySelector('.coin-front').textContent = '👍';
-      document.querySelector('.coin-back').textContent = '🖕';
+      if (state.hasSkin) {
+        state.hasSkin = false;
+        document.querySelector('.coin-front').textContent = '正';
+        document.querySelector('.coin-back').textContent = '反';
+      } else {
+        state.hasSkin = true;
+        document.querySelector('.coin-front').textContent = '👍';
+        document.querySelector('.coin-back').textContent = '🖕';
+      }
     },
   },
   {
