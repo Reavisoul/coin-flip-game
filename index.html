@@ -72,6 +72,38 @@ body {
   color: #5a3e00; font-weight: 700; transform: scale(1.1);
 }
 
+.chest {
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #8b5e3c, #6b3a1f);
+  border: 2px solid #a06830;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  position: relative;
+  transition: all 0.4s;
+  margin-left: 4px;
+}
+.chest::after {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px; height: 6px;
+  border: 2px solid #ffd700;
+  border-radius: 2px;
+}
+.chest.chest-ready {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  border-color: #ffaa00;
+  box-shadow: 0 0 16px rgba(255,215,0,0.6);
+  animation: chestGlow 1s ease-in-out infinite;
+}
+.chest.chest-ready::after { border-color: #fff; }
+
+@keyframes chestGlow {
+  0%, 100% { box-shadow: 0 0 12px rgba(255,215,0,0.4); }
+  50% { box-shadow: 0 0 24px rgba(255,215,0,0.8); }
+}
+
 /* Coin Area */
 .coin-area { perspective: 800px; width: 180px; height: 180px; margin: 10px 0; }
 
@@ -125,13 +157,61 @@ body {
 }
 
 /* Buttons */
-.flip-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.flip-control { display: flex; align-items: center; gap: 0; }
+
+.flip-control { position: relative; }
+
+.count-hint {
+  font-size: 11px; color: rgba(255,255,255,0.35);
+  text-align: center; margin: 6px 0;
+  height: 16px; line-height: 16px;
+  animation: hintPulse 2s ease-in-out infinite;
+}
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+
+.count-tip {
+  position: absolute;
+  bottom: calc(100% + 10px); left: 0;
+  background: rgba(255,255,255,0.95);
+  color: #1a1a2e;
+  font-size: 12px; font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  animation: tipFade 4s ease-in-out forwards;
+  pointer-events: none;
+}
+.count-tip::after {
+  content: '';
+  position: absolute; top: 100%; left: 20px;
+  border: 6px solid transparent;
+  border-top-color: rgba(255,255,255,0.95);
+}
+@keyframes tipFade {
+  0%, 60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.count-btn {
+  padding: 12px 16px; font-size: 15px; font-weight: 700; font-family: inherit;
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #e6c200, #cc9900);
+  border: none; border-radius: 50px 0 0 50px; cursor: pointer;
+  transition: all 0.2s;
+  min-width: 64px;
+}
+.count-btn:hover { background: linear-gradient(135deg, #d4b300, #bb8800); }
+.count-btn:active { transform: scale(0.96); }
 
 .flip-btn {
-  padding: 12px 20px; font-size: 16px; font-weight: 700; font-family: inherit;
+  padding: 12px 32px; font-size: 18px; font-weight: 700; font-family: inherit;
   color: #1a1a2e;
   background: linear-gradient(135deg, #ffd700, #ffaa00);
-  border: none; border-radius: 50px; cursor: pointer;
+  border: none; border-radius: 0 50px 50px 0; cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 4px 16px rgba(255,215,0,0.25);
 }
@@ -169,6 +249,9 @@ body {
   z-index: 1000; opacity: 1; transition: opacity 0.3s;
 }
 .overlay.hidden { opacity: 0; pointer-events: none; }
+#shopOverlay, #lbOverlay, #codexOverlay { background: none; backdrop-filter: none; pointer-events: none; }
+#shopOverlay .panel, #lbOverlay .panel, #codexOverlay .panel { pointer-events: auto; }
+#shopOverlay.hidden .panel, #lbOverlay.hidden .panel, #codexOverlay.hidden .panel { pointer-events: none; }
 
 .panel {
   background: linear-gradient(135deg, #1e1b3a, #2a2650);
@@ -266,6 +349,17 @@ body {
   0%, 100% { margin-top: 0; }
   50% { margin-top: -6px; }
 }
+@keyframes rainbow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+.pet-shiny {
+  animation: petBounce 1.2s ease-in-out infinite, rainbow 2s linear infinite;
+  box-shadow: 0 0 16px 4px rgba(255,200,50,0.5);
+}
+.codex-shiny {
+  animation: rainbow 2s linear infinite;
+}
 
 /* Pet get notification */
 .pet-notify {
@@ -297,6 +391,37 @@ body {
 .pet-notify-name { font-size: 18px; font-weight: 700; color: #c084fc; margin-bottom: 4px; }
 .pet-notify-hint { font-size: 12px; color: rgba(255,255,255,0.4); }
 
+/* Leaderboard */
+.lb-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.lb-tab {
+  flex: 1; padding: 8px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+  background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5); font-size: 13px; cursor: pointer;
+}
+.lb-tab-active { background: rgba(251,191,36,0.15); color: #fbbf24; border-color: rgba(251,191,36,0.3); }
+.lb-slider-wrap { overflow: hidden; margin-bottom: 16px; }
+.lb-slider { display: flex; transition: transform 0.3s ease; }
+.lb-slider > .lb-list { min-width: 100%; flex-shrink: 0; overflow: hidden; transition: opacity 0.2s; }
+.lb-row {
+  display: flex; align-items: center; padding: 10px 12px; border-radius: 10px;
+  margin-bottom: 4px; background: rgba(255,255,255,0.03);
+}
+.lb-row:hover { background: rgba(255,255,255,0.06); }
+.lb-me { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.2); }
+.lb-rank { width: 32px; text-align: center; font-size: 14px; flex-shrink: 0; }
+.lb-name { flex: 1; font-size: 14px; color: #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-val { font-size: 14px; color: #fbbf24; font-weight: 700; flex-shrink: 0; margin-left: 8px; }
+.lb-nick-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.lb-nick-input {
+  flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06); color: #fff; font-size: 14px; outline: none;
+}
+.lb-nick-input:focus { border-color: rgba(251,191,36,0.4); }
+.lb-nick-btn {
+  padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(251,191,36,0.3);
+  background: rgba(251,191,36,0.12); color: #fbbf24; font-size: 13px; cursor: pointer;
+}
+.lb-nick-btn:hover { background: rgba(251,191,36,0.2); }
+
 /* Screen shake */
 .shake { animation: shake 0.4s ease-out; }
 @keyframes shake {
@@ -327,6 +452,7 @@ body {
 <body>
 
 <div class="game" id="game">
+  <div style="text-align:center;color:rgba(255,255,255,0.3);font-size:12px;margin-bottom:8px;">投硬币，投出正面即可赚取金币！开启你的放置生活~</div>
   <div class="stats">
     <div class="stat-item">
       <div>
@@ -342,14 +468,26 @@ body {
     </div>
     <div class="stat-item">
       <div>
-        <div class="stat-label">完成次数</div>
+        <div class="stat-label">投掷次数</div>
+        <div class="stat-value" id="flipCountDisplay">0</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div>
+        <div class="stat-label">开宝箱次数</div>
         <div class="stat-value" id="compDisplay">0</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div>
+        <div class="stat-label">总消费</div>
+        <div class="stat-value gold-value" id="spentDisplay">0</div>
       </div>
     </div>
   </div>
 
   <div class="streak-section">
-    <div class="streak-label">连续正面进度</div>
+    <div class="streak-label" id="streakLabel">连续正面进度 0/10 开启宝箱</div>
     <div class="streak-dots" id="streakDots"></div>
   </div>
 
@@ -362,37 +500,69 @@ body {
 
   <div class="result-text" id="resultText"></div>
 
-  <div class="flip-group" id="flipGroup">
-    <button class="flip-btn" data-count="1">投 1 次</button>
-    <button class="flip-btn" data-count="10">投 10 次</button>
-    <button class="flip-btn" data-count="100">投 100 次</button>
-    <button class="flip-btn" data-count="1000">投 1000 次</button>
+  <div class="flip-control" id="flipGroup">
+    <button class="count-btn" id="countBtn">&times;1</button>
+    <button class="flip-btn" id="flipBtn">投掷</button>
   </div>
   <button class="stop-btn" id="stopBtn">停止</button>
 
+  <div class="count-hint" id="countHint">点击 ×1 可切换投掷次数</div>
   <div class="bottom-btns">
     <button class="shop-btn" id="shopBtn">商店</button>
     <button class="codex-btn hidden" id="codexBtn" style="display:none;">图鉴</button>
+    <button class="shop-btn" id="lbBtn" style="color:#fbbf24;border-color:rgba(251,191,36,0.3);">排行榜</button>
+  </div>
+</div>
+
+<!-- Leaderboard -->
+<div class="overlay hidden" id="lbOverlay">
+  <div class="panel" id="lbPanel" style="max-width:380px;">
+    <div class="panel-title" id="lbDragHandle" style="color:#fbbf24;cursor:grab;">排行榜</div>
+    <div class="lb-nick-row">
+      <input id="lbNickname" class="lb-nick-input" maxlength="12" />
+      <button id="lbNickSave" class="lb-nick-btn">改名</button>
+    </div>
+    <div class="lb-tabs">
+      <button class="lb-tab lb-tab-active" id="lbTabFlips">投掷次数榜</button>
+      <button class="lb-tab" id="lbTabSpent">总消费榜</button>
+    </div>
+    <div class="lb-slider-wrap">
+      <div class="lb-slider" id="lbSlider">
+        <div id="lbListFlips" class="lb-list"></div>
+        <div id="lbListSpent" class="lb-list"></div>
+      </div>
+    </div>
+    <button id="lbRefresh" class="lb-nick-btn" style="width:100%;margin-bottom:12px;">刷新</button>
+    <button class="close-btn" onclick="document.getElementById('lbOverlay').classList.add('hidden'); document.getElementById('lbBtn').style.display='';">关闭</button>
   </div>
 </div>
 
 <!-- Shop -->
 <div class="overlay hidden" id="shopOverlay">
-  <div class="panel">
-    <div class="panel-title">商店</div>
+  <div class="panel" id="shopPanel">
+    <div class="panel-title" id="shopDragHandle" style="cursor:grab;">商店</div>
     <div class="panel-sub">持有 <span id="shopGold">0</span> 金币</div>
     <div class="shop-items" id="shopItems"></div>
-    <button class="close-btn" onclick="document.getElementById('shopOverlay').classList.add('hidden')">关闭</button>
+    <button class="close-btn" onclick="document.getElementById('shopOverlay').classList.add('hidden'); document.getElementById('shopBtn').style.display='';">关闭</button>
+  </div>
+</div>
+
+<!-- Update Announcement -->
+<div class="overlay hidden" id="updateOverlay">
+  <div class="panel">
+    <div class="panel-title" style="color:#fbbf24;">更新公告</div>
+    <div id="updateContent" style="text-align:left;color:#ccc;font-size:14px;line-height:1.8;margin:12px 0;"></div>
+    <button class="close-btn" onclick="document.getElementById('updateOverlay').classList.add('hidden')">知道了</button>
   </div>
 </div>
 
 <!-- Codex -->
 <div class="overlay hidden" id="codexOverlay">
-  <div class="panel">
-    <div class="panel-title" style="color:#c084fc;">宠物图鉴</div>
-    <div class="panel-sub">已收集 <span id="codexCount">0</span> / 7</div>
+  <div class="panel" id="codexPanel">
+    <div class="panel-title" id="codexDragHandle" style="color:#c084fc;cursor:grab;">宠物图鉴</div>
+    <div class="panel-sub">已收集 <span id="codexCount">0</span> / 8</div>
     <div class="codex-grid" id="codexGrid"></div>
-    <button class="close-btn" onclick="document.getElementById('codexOverlay').classList.add('hidden')">关闭</button>
+    <button class="close-btn" onclick="document.getElementById('codexOverlay').classList.add('hidden'); document.getElementById('codexBtn').style.display='';">关闭</button>
   </div>
 </div>
 
@@ -406,6 +576,7 @@ const PET_DEFS = [
   { id: 4, name: '青币宠', char: '青', color: '#00ccbb', bg: 'radial-gradient(circle at 35% 35%, #55eedd, #00ccbb 50%, #009988)' },
   { id: 5, name: '蓝币宠', char: '蓝', color: '#4488ff', bg: 'radial-gradient(circle at 35% 35%, #88bbff, #4488ff 50%, #2266cc)' },
   { id: 6, name: '紫币宠', char: '紫', color: '#aa44ff', bg: 'radial-gradient(circle at 35% 35%, #cc88ff, #aa44ff 50%, #7722cc)' },
+  { id: 7, name: '闪光币宠', char: '✦', color: '#ffd700', bg: 'conic-gradient(#ff4444,#ff8800,#ffcc00,#22cc44,#4488ff,#aa44ff,#ff4444)', shiny: true },
 ];
 
 // ── State ──
@@ -420,6 +591,9 @@ const state = {
   speedLevel: 0,
   probLevel: 0,
   goldLevel: 0,
+  pityLevel: 0,
+  tailStreak: 0,
+  totalSpent: 0,
   pets: [],         // owned pet IDs
   // runtime (not saved)
   flipping: false,
@@ -430,27 +604,38 @@ const state = {
 // ── Shop Items ──
 const shopItemDefs = [
   {
-    id: 'prob_up', name: '概率提升', desc: '正面概率 +2%', price: 3000,
+    id: 'prob_up', name: '概率提升', desc: '正面概率 +2%',
+    getPrice: () => Math.floor(100 + state.probLevel * 200 + state.probLevel * state.probLevel * 80),
     getExtra: () => `已购 ${state.probLevel} 次 (当前 ${state.headsProb}%)`,
     canBuy: () => state.headsProb < 90,
     apply: () => { state.headsProb += 2; state.probLevel++; },
   },
   {
-    id: 'speed_up', name: '加速投掷', desc: '动画速度 +2%', price: 3000,
+    id: 'speed_up', name: '加速投掷', desc: '动画速度 +2%',
+    getPrice: () => Math.floor(100 + state.speedLevel * 180 + state.speedLevel * state.speedLevel * 60),
     getExtra: () => `已购 ${state.speedLevel} 次`,
     canBuy: () => state.speedLevel < 40,
     apply: () => { state.animDuration *= 0.98; state.speedLevel++; },
   },
   {
-    id: 'gold_up', name: '金币加成', desc: '每次正面额外 +1 金币', price: 2500,
+    id: 'gold_up', name: '金币加成', desc: '每次正面额外 +1 金币',
+    getPrice: () => Math.floor(80 + state.goldLevel * 150 + state.goldLevel * state.goldLevel * 50),
     getExtra: () => `已购 ${state.goldLevel} 次 (每次正面 +${state.goldPerHeads})`,
     canBuy: () => state.goldLevel < 50,
     apply: () => { state.goldPerHeads += 1; state.goldLevel++; },
   },
   {
-    id: 'mystery', name: '？？？', desc: '？？？', price: 10000, isMystery: true,
-    getExtra: () => state.pets.length >= 7 ? '已收集全部' : `已拥有 ${state.pets.length}/7`,
-    canBuy: () => state.pets.length < 7,
+    id: 'pity', name: '失败保底', desc: '每累计10次反面获得金币补偿',
+    getPrice: () => Math.floor(50 + state.pityLevel * 100 + state.pityLevel * state.pityLevel * 40),
+    getExtra: () => state.pityLevel > 0 ? `当前每10次反面 +${state.pityLevel}g (${state.pityLevel}/10)` : '',
+    canBuy: () => state.pityLevel < 10,
+    apply: () => { state.pityLevel++; },
+  },
+  {
+    id: 'mystery', name: '？？？', desc: '？？？', isMystery: true,
+    getPrice: () => Math.min(10000, Math.floor(2000 + state.pets.length * 3000 + state.pets.length * state.pets.length * 1500)),
+    getExtra: () => { const n = state.pets.filter(id => id < 7).length; return n > 0 ? `已拥有 ${n} 只` : ''; },
+    canBuy: () => true,
     apply: () => { grantRandomPet(); },
   },
 ];
@@ -465,7 +650,7 @@ const shopOverlay = document.getElementById('shopOverlay');
 const codexOverlay = document.getElementById('codexOverlay');
 const shopItemsEl = document.getElementById('shopItems');
 const goldDisplay = document.getElementById('goldDisplay');
-const probDisplay = document.getElementById('probDisplay');
+const flipCountDisplay = document.getElementById('flipCountDisplay');
 const compDisplay = document.getElementById('compDisplay');
 const shopGoldEl = document.getElementById('shopGold');
 const streakDotsEl = document.getElementById('streakDots');
@@ -481,16 +666,26 @@ const gameEl = document.getElementById('game');
     d.className = 'dot'; d.textContent = i + 1;
     streakDotsEl.appendChild(d);
   }
+  const chest = document.createElement('div');
+  chest.className = 'chest';
+  chest.id = 'streakChest';
+  chest.title = '连续10次正面可获得奖励';
+  streakDotsEl.appendChild(chest);
 })();
 
 // ── UI Update ──
 function updateUI() {
   goldDisplay.textContent = state.gold;
-  probDisplay.textContent = state.headsProb + '%';
+  document.getElementById('probDisplay').textContent = state.headsProb + '%';
+  flipCountDisplay.textContent = state.totalFlips;
   compDisplay.textContent = state.completions;
+  document.getElementById('spentDisplay').textContent = state.totalSpent;
   const dots = streakDotsEl.children;
   for (let i = 0; i < 10; i++) dots[i].classList.toggle('active', i < state.streak);
+  document.getElementById('streakLabel').textContent = `连续正面进度 ${state.streak}/10 开启宝箱`;
+  document.getElementById('streakChest').classList.toggle('chest-ready', state.streak >= 7);
   codexBtn.style.display = state.pets.length > 0 ? '' : 'none';
+  if (!shopOverlay.classList.contains('hidden')) renderShop();
 }
 
 function showResultText(text, cls) {
@@ -547,6 +742,7 @@ function quickFlipVisual(isHeads) {
 // ── Core Flip Logic ──
 function resolveFlip() {
   const isHeads = Math.random() * 100 < state.headsProb;
+  const prevGold = state.gold;
   state.totalFlips++;
 
   if (isHeads) {
@@ -554,14 +750,22 @@ function resolveFlip() {
     state.streak++;
     if (state.streak >= 10) {
       state.completions++;
-      state.gold += 50 + state.completions * 20;
       state.streak = 0;
+      if (Math.random() < 0.01 && !state.pets.includes(7)) {
+        grantShinyPet();
+      } else {
+        state.gold += 50 + state.completions * 20;
+      }
     }
   } else {
     state.streak = 0;
+    state.tailStreak++;
+    if (state.pityLevel > 0 && state.tailStreak % 10 === 0) {
+      state.gold += state.pityLevel;
+    }
   }
 
-  return isHeads;
+  return { isHeads, goldChanged: state.gold > prevGold };
 }
 
 // ── Flip Controller ──
@@ -570,11 +774,11 @@ async function startFlip(count) {
   state.flipping = true;
   state.stopRequested = false;
   flipGroup.style.display = 'none';
-  if (count > 1) stopBtn.style.display = '';
+  if (count > 1) stopBtn.style.display = 'inline-block';
 
   if (count === 1) {
     clearResultText();
-    const isHeads = resolveFlip();
+    const { isHeads, goldChanged } = resolveFlip();
     await animateFlip(isHeads);
 
     if (isHeads) {
@@ -590,37 +794,28 @@ async function startFlip(count) {
     saveGame();
   } else {
     // Multi-flip
-    const batchSize = count >= 1000 ? 10 : count >= 100 ? 3 : 1;
-    const delay = count >= 1000 ? 25 : count >= 100 ? 40 : 100;
     let done = 0;
 
-    await new Promise(resolve => {
-      function tick() {
-        if (state.stopRequested || done >= count) { resolve(); return; }
+    for (let i = 0; i < count; i++) {
+      if (state.stopRequested) break;
+      clearResultText();
+      const { isHeads, goldChanged } = resolveFlip();
+      done = i + 1;
 
-        const batchEnd = Math.min(done + batchSize, count);
-        let lastResult = false;
-        for (let i = done; i < batchEnd; i++) {
-          lastResult = resolveFlip();
-          if (state.stopRequested) { done = i + 1; break; }
-        }
-        done = Math.min(batchEnd, count);
+      await animateFlip(isHeads);
 
-        quickFlipVisual(lastResult);
-        showResultText(`投掷中... ${done}/${count}`, 'progress-result');
-        updateUI();
-
-        if (done < count && !state.stopRequested) {
-          setTimeout(tick, delay);
-        } else {
-          resolve();
-        }
+      if (isHeads) {
+        showResultText(`正面！+${state.goldPerHeads} 金币 (${done}/${count})`, 'heads-result');
+        const rect = coinEl.getBoundingClientRect();
+        spawnFloatText(`+${state.goldPerHeads}`, '#ffd700', rect.left + rect.width / 2 - 15, rect.top);
+      } else {
+        showResultText(`反面... (${done}/${count})`, 'tails-result');
+        gameEl.classList.add('shake');
+        setTimeout(() => gameEl.classList.remove('shake'), 400);
       }
-      tick();
-    });
-
-    showResultText(`完成 ${done} 次投掷`, 'progress-result');
-    saveGame();
+      updateUI();
+      saveGame();
+    }
   }
 
   state.flipping = false;
@@ -629,9 +824,20 @@ async function startFlip(count) {
 }
 
 // Button listeners
-flipGroup.addEventListener('click', e => {
-  const btn = e.target.closest('.flip-btn');
-  if (btn && !state.flipping) startFlip(parseInt(btn.dataset.count));
+const COUNTS = [1, 10, 100, 1000];
+let countIndex = 0;
+const countBtn = document.getElementById('countBtn');
+const flipBtn = document.getElementById('flipBtn');
+
+countBtn.addEventListener('click', () => {
+  countIndex = (countIndex + 1) % COUNTS.length;
+  countBtn.textContent = '\u00d7' + COUNTS[countIndex];
+  const hint = document.getElementById('countHint');
+  hint.style.visibility = countIndex === 0 ? '' : 'hidden';
+});
+
+flipBtn.addEventListener('click', () => {
+  if (!state.flipping) startFlip(COUNTS[countIndex]);
 });
 
 stopBtn.addEventListener('click', () => { state.stopRequested = true; });
@@ -649,7 +855,8 @@ function renderShop() {
   shopItemsEl.innerHTML = '';
 
   shopItemDefs.forEach(item => {
-    const canAfford = state.gold >= item.price;
+    const price = item.getPrice();
+    const canAfford = state.gold >= price;
     const canBuy = item.canBuy() && canAfford;
     const div = document.createElement('div');
     div.className = 'shop-item' + (canBuy ? '' : ' shop-item-disabled') + (item.isMystery ? ' mystery-item' : '');
@@ -661,12 +868,14 @@ function renderShop() {
         <div class="item-desc">${item.desc}</div>
         ${extra ? `<div class="item-extra">${extra}</div>` : ''}
       </div>
-      <button class="buy-btn${item.isMystery ? ' mystery-btn' : ''}" ${canBuy ? '' : 'disabled'}>${item.price}g</button>
+      <button class="buy-btn${item.isMystery ? ' mystery-btn' : ''}" ${canBuy ? '' : 'disabled'}>${price}g</button>
     `;
 
     div.querySelector('.buy-btn').addEventListener('click', () => {
-      if (!item.canBuy() || state.gold < item.price) return;
-      state.gold -= item.price;
+      const curPrice = item.getPrice();
+      if (!item.canBuy() || state.gold < curPrice) return;
+      state.gold -= curPrice;
+      state.totalSpent += curPrice;
       item.apply();
       updateUI(); saveGame(); renderShop();
     });
@@ -675,17 +884,68 @@ function renderShop() {
   });
 }
 
-shopBtn.addEventListener('click', () => { shopOverlay.classList.remove('hidden'); renderShop(); });
-shopOverlay.addEventListener('click', e => { if (e.target === shopOverlay) shopOverlay.classList.add('hidden'); });
+shopBtn.addEventListener('click', () => {
+  shopOverlay.classList.remove('hidden');
+  shopBtn.style.display = 'none';
+  const gameRect = document.getElementById('game').getBoundingClientRect();
+  shopPanel.style.position = 'fixed';
+  shopPanel.style.right = ''; shopPanel.style.left = Math.max(8, gameRect.left - 410) + 'px';
+  shopPanel.style.top = '50%'; shopPanel.style.transform = 'translateY(-50%)';
+  shopPanel.style.margin = '0';
+  renderShop();
+});
+
+// ── Panel Drag ──
+function initDrag(handleId, panelId) {
+  const handle = document.getElementById(handleId);
+  const panel = document.getElementById(panelId);
+  let dragging = false, ox, oy;
+
+  function onStart(x, y) {
+    dragging = true;
+    handle.style.cursor = 'grabbing';
+    const rect = panel.getBoundingClientRect();
+    ox = x - rect.left; oy = y - rect.top;
+    panel.style.position = 'fixed';
+    panel.style.left = rect.left + 'px';
+    panel.style.top = rect.top + 'px';
+    panel.style.right = '';
+    panel.style.transform = '';
+    panel.style.margin = '0';
+  }
+  function onMove(x, y) {
+    if (!dragging) return;
+    panel.style.left = (x - ox) + 'px';
+    panel.style.top = (y - oy) + 'px';
+  }
+  function onEnd() { dragging = false; handle.style.cursor = 'grab'; }
+
+  handle.addEventListener('mousedown', e => { e.preventDefault(); onStart(e.clientX, e.clientY); });
+  window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup', onEnd);
+
+  handle.addEventListener('touchstart', e => { const t = e.touches[0]; onStart(t.clientX, t.clientY); }, { passive: true });
+  window.addEventListener('touchmove', e => { if (dragging) { const t = e.touches[0]; onMove(t.clientX, t.clientY); } });
+  window.addEventListener('touchend', onEnd);
+}
+initDrag('shopDragHandle', 'shopPanel');
+initDrag('lbDragHandle', 'lbPanel');
+initDrag('codexDragHandle', 'codexPanel');
 
 // ── Pet System ──
 const petElements = []; // DOM references for walking pets
 
 function grantRandomPet() {
-  const unowned = PET_DEFS.filter(p => !state.pets.includes(p.id));
-  if (unowned.length === 0) return;
+  const pool = PET_DEFS.filter(p => !p.shiny);
+  const pet = pool[Math.floor(Math.random() * pool.length)];
+  state.pets.push(pet.id);
+  spawnPetOnScreen(pet);
+  showPetNotify(pet);
+  updateUI();
+}
 
-  const pet = unowned[Math.floor(Math.random() * unowned.length)];
+function grantShinyPet() {
+  const pet = PET_DEFS.find(p => p.id === 7);
   state.pets.push(pet.id);
   spawnPetOnScreen(pet);
   showPetNotify(pet);
@@ -707,7 +967,7 @@ function showPetNotify(pet) {
 
 function spawnPetOnScreen(pet) {
   const el = document.createElement('div');
-  el.className = 'pet';
+  el.className = 'pet' + (pet.shiny ? ' pet-shiny' : '');
   el.style.background = pet.bg;
   el.style.border = `3px solid ${pet.color}`;
   el.textContent = pet.char;
@@ -744,28 +1004,38 @@ function restoreAllPets() {
 
 // ── Codex ──
 function renderCodex() {
-  codexCount.textContent = state.pets.length;
+  codexCount.textContent = new Set(state.pets).size;
   codexGrid.innerHTML = '';
 
   PET_DEFS.forEach(pet => {
-    const owned = state.pets.includes(pet.id);
+    const count = state.pets.filter(id => id === pet.id).length;
+    const owned = count > 0;
     const card = document.createElement('div');
     card.className = 'codex-card ' + (owned ? 'unlocked' : 'locked');
 
+    const shinyClass = owned && pet.shiny ? ' codex-shiny' : '';
     card.innerHTML = `
-      <div class="codex-pet-icon" style="background:${owned ? pet.bg : 'rgba(255,255,255,0.08)'};border:3px solid ${owned ? pet.color : 'rgba(255,255,255,0.1)'}">
+      <div class="codex-pet-icon${shinyClass}" style="background:${owned ? pet.bg : 'rgba(255,255,255,0.08)'};border:3px solid ${owned ? pet.color : 'rgba(255,255,255,0.1)'}">
         ${owned ? pet.char : '?'}
       </div>
-      <div class="codex-pet-name" style="color:${owned ? pet.color : 'rgba(255,255,255,0.3)'}">
+      <div class="codex-pet-name${shinyClass}" style="color:${owned ? pet.color : 'rgba(255,255,255,0.3)'}">
         ${owned ? pet.name : '???'}
       </div>
+      ${count > 1 ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">×${count}</div>` : ''}
     `;
     codexGrid.appendChild(card);
   });
 }
 
-codexBtn.addEventListener('click', () => { renderCodex(); codexOverlay.classList.remove('hidden'); });
-codexOverlay.addEventListener('click', e => { if (e.target === codexOverlay) codexOverlay.classList.add('hidden'); });
+codexBtn.addEventListener('click', () => {
+  const p = document.getElementById('codexPanel');
+  p.style.position = 'fixed';
+  p.style.left = '50%'; p.style.right = '';
+  p.style.top = '50%'; p.style.transform = 'translate(-50%,-50%)';
+  p.style.margin = '0';
+  renderCodex(); codexOverlay.classList.remove('hidden');
+  codexBtn.style.display = 'none';
+});
 
 // ── Confetti ──
 function spawnConfetti() {
@@ -795,7 +1065,8 @@ function saveGame() {
     animDuration: state.animDuration, totalFlips: state.totalFlips,
     completions: state.completions,
     speedLevel: state.speedLevel, probLevel: state.probLevel,
-    goldLevel: state.goldLevel, pets: state.pets,
+    goldLevel: state.goldLevel, pityLevel: state.pityLevel,
+    tailStreak: state.tailStreak, totalSpent: state.totalSpent, pets: state.pets,
   }));
 }
 
@@ -810,10 +1081,210 @@ function loadGame() {
   } catch (e) {}
 }
 
+// ── Version & Changelog ──
+const GAME_VERSION = '1.4';
+const CHANGELOG = {
+  '1.4': [
+    '我们改善了游玩体验和UI体验~',
+  ],
+  '1.3': [
+    '排行榜上线！快来比比谁投得多、谁花得多',
+  ],
+  '1.2': [
+    '现在可以看到投掷次数和总消费啦',
+  ],
+  '1.1': [
+    '宝箱里现在新增了神秘奖励...',
+    '商店窗口现在可以拖拽移动啦！',
+  ],
+  '1.0': ['初版上线：投掷、商店、宠物系统'],
+};
+
+function checkUpdate() {
+  const key = 'coin_flip_last_version';
+  const last = localStorage.getItem(key);
+  if (last === GAME_VERSION) return;
+  localStorage.setItem(key, GAME_VERSION);
+  const versions = Object.keys(CHANGELOG);
+  const lastIdx = last ? versions.indexOf(last) : -1;
+  const newVersions = lastIdx === -1 ? [GAME_VERSION] : versions.slice(0, versions.indexOf(last));
+  if (newVersions.length === 0) return;
+  const notes = newVersions.flatMap(v => CHANGELOG[v]);
+  const html = notes.map(n => `• ${n}`).join('<br>');
+  document.getElementById('updateContent').innerHTML = html;
+  document.getElementById('updateOverlay').classList.remove('hidden');
+}
+
 // ── Init ──
 loadGame();
 updateUI();
 restoreAllPets();
+checkUpdate();
+
+// Leaderboard pre-bindwindow._firebaseReady = false;
+document.getElementById('lbBtn').addEventListener('click', () => {
+  const p = document.getElementById('lbPanel');
+  p.style.position = 'fixed';
+  p.style.left = '10px'; p.style.right = '';
+  p.style.top = '50%'; p.style.transform = 'translateY(-50%)';
+  p.style.margin = '0';
+  document.getElementById('lbOverlay').classList.remove('hidden');
+  document.getElementById('lbBtn').style.display = 'none';
+  if (!window._firebaseReady) {
+    document.getElementById('lbList').innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:40px;">排行榜加载中...</div>';
+    return;
+  }
+});
+
+// ── Player Identity ──
+const PLAYER_KEY = 'coin_flip_player';
+const NICK_PREFIXES = ['硬币勇士','金币猎人','抛币达人','幸运之手','翻转高手','黄金收割','掷币英雄'];
+
+function getPlayer() {
+  let p = JSON.parse(localStorage.getItem(PLAYER_KEY) || 'null');
+  if (!p) {
+    const prefix = NICK_PREFIXES[Math.floor(Math.random() * NICK_PREFIXES.length)];
+    const num = Math.floor(Math.random() * 9000) + 1000;
+    p = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nickname: prefix + '#' + num };
+    localStorage.setItem(PLAYER_KEY, JSON.stringify(p));
+  }
+  return p;
+}
+const player = getPlayer();
+document.getElementById('lbNickname').value = player.nickname;
+
+document.getElementById('lbNickSave').addEventListener('click', () => {
+  const val = document.getElementById('lbNickname').value.trim();
+  if (!val || val === player.nickname) return;
+  player.nickname = val;
+  localStorage.setItem(PLAYER_KEY, JSON.stringify(player));
+  // 提示
+  const btn = document.getElementById('lbNickSave');
+  btn.textContent = '已保存'; btn.style.color = '#4ade80';
+  setTimeout(() => { btn.textContent = '改名'; btn.style.color = ''; }, 1500);
+  // 同步并刷新排行榜
+  if (window._firebaseReady && typeof syncLeaderboard === 'function') {
+    syncLeaderboard();
+    setTimeout(() => { if (typeof loadBothLists === 'function') loadBothLists(); }, 500);
+  }
+});
+
+</script>
+<script>
+// ── Firebase Loader ──
+(function loadFirebase() {
+  const s1 = document.createElement('script');
+  s1.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+  s1.onload = function() {
+    const s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js';
+    s2.onload = initFirebase;
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+})();
+
+function initFirebase() {
+  firebase.initializeApp({
+    apiKey: "AIzaSyDVHN3TtxxCQYYv3IBUnu9AUbdcdB3ME7Y",
+    authDomain: "coin-flip-game-4868b.firebaseapp.com",
+    databaseURL: "https://coin-flip-game-4868b-default-rtdb.firebaseio.com",
+    projectId: "coin-flip-game-4868b",
+    storageBucket: "coin-flip-game-4868b.firebasestorage.app",
+    messagingSenderId: "220246335683",
+    appId: "1:220246335683:web:d112dbed67434fac5cc276"
+  });
+  const db = firebase.database();
+
+  // ── Sync to Firebase ──
+  window.syncLeaderboard = function() {
+    db.ref('players/' + player.id).set({
+      nickname: player.nickname,
+      totalFlips: state.totalFlips,
+      totalSpent: state.totalSpent,
+    });
+  };
+
+  // Hook into saveGame
+  const _origSave = saveGame;
+  saveGame = function() { _origSave(); syncLeaderboard(); };
+
+  // ── Leaderboard UI ──
+  let lbTab = 'totalFlips';
+  const slider = document.getElementById('lbSlider');
+  const lbListFlips = document.getElementById('lbListFlips');
+  const lbListSpent = document.getElementById('lbListSpent');
+
+  function slideToTab() {
+    const tabSpent = document.getElementById('lbTabSpent');
+    const tabFlips = document.getElementById('lbTabFlips');
+    tabSpent.classList.toggle('lb-tab-active', lbTab === 'totalSpent');
+    tabFlips.classList.toggle('lb-tab-active', lbTab === 'totalFlips');
+    slider.style.transform = lbTab === 'totalFlips' ? 'translateX(0)' : 'translateX(-100%)';
+  }
+
+  function renderRow(d, rank, field, isMe) {
+    const label = field === 'totalSpent' ? 'g' : '次';
+    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+    return `<div class="lb-row${isMe ? ' lb-me' : ''}">
+      <span class="lb-rank">${medal}</span>
+      <span class="lb-name">${d.nickname}</span>
+      <span class="lb-val">${d[field]}${label}</span>
+    </div>`;
+  }
+
+  function renderListHTML(allData, field) {
+    if (allData.length === 0) return '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:20px;">暂无数据</div>';
+    const top10 = allData.slice(0, 10);
+    let html = top10.map((d, i) => renderRow(d, i + 1, field, d.nickname === player.nickname)).join('');
+    const inTop = top10.some(d => d.nickname === player.nickname);
+    if (!inTop) {
+      const myIdx = allData.findIndex(d => d.nickname === player.nickname);
+      if (myIdx >= 0) {
+        html += '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:4px;">···</div>';
+        html += renderRow(allData[myIdx], myIdx + 1, field, true);
+      }
+    }
+    return html;
+  }
+
+  async function fetchAndRender(field) {
+    const listEl = field === 'totalFlips' ? lbListFlips : lbListSpent;
+    if (!listEl.innerHTML) listEl.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:20px;">加载中...</div>';
+    listEl.style.opacity = '0.5';
+    const snap = await db.ref('players').orderByChild(field).once('value');
+    const list = []; snap.forEach(c => { list.push(c.val()); });
+    listEl.innerHTML = renderListHTML(list.reverse(), field);
+    listEl.style.opacity = '1';
+  }
+
+  async function loadBothLists() {
+    document.getElementById('lbNickname').value = player.nickname;
+    slideToTab();
+    await Promise.all([fetchAndRender('totalFlips'), fetchAndRender('totalSpent')]);
+  }
+
+  document.getElementById('lbTabFlips').addEventListener('click', () => { lbTab = 'totalFlips'; slideToTab(); });
+  document.getElementById('lbTabSpent').addEventListener('click', () => { lbTab = 'totalSpent'; slideToTab(); });
+  document.getElementById('lbRefresh').addEventListener('click', () => { loadBothLists(); });
+
+  window._firebaseReady = true;
+  document.getElementById('lbBtn').addEventListener('click', () => {
+    const p = document.getElementById('lbPanel');
+    const gameRect = document.getElementById('game').getBoundingClientRect();
+    p.style.position = 'fixed';
+    p.style.left = Math.min(window.innerWidth - 390, gameRect.right + 10) + 'px'; p.style.right = '';
+    p.style.top = '50%'; p.style.transform = 'translateY(-50%)';
+    p.style.margin = '0';
+    document.getElementById('lbOverlay').classList.remove('hidden');
+    document.getElementById('lbBtn').style.display = 'none';
+    loadBothLists();
+  });
+
+  // Sync on first load & auto-refresh if leaderboard already open
+  syncLeaderboard();
+  if (!document.getElementById('lbOverlay').classList.contains('hidden')) loadBothLists();
+}
 </script>
 </body>
 </html>
