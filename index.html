@@ -782,7 +782,7 @@ function resolveFlip() {
   if (isHeads) {
     state.gold += state.goldPerHeads;
     state.streak++;
-    if (state.comboLevel > 0) state.gold += state.streak * state.comboLevel;
+    if (state.comboLevel > 0 && state.streak > 1) state.gold += state.streak * state.comboLevel;
     if (state.streak >= 10) {
       state.completions++;
       state.streak = 0;
