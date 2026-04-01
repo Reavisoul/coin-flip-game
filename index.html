@@ -607,6 +607,7 @@ const state = {
   pityLevel: 0,
   tailStreak: 0,
   totalSpent: 0,
+  eggPity: 0,        // 连续未出新宠物次数
   pets: [],         // owned pet IDs
   // runtime (not saved)
   flipping: false,
@@ -618,36 +619,36 @@ const state = {
 const shopItemDefs = [
   {
     id: 'prob_up', name: '概率提升', desc: '正面概率 +2%',
-    getPrice: () => Math.floor(100 + state.probLevel * 200 + state.probLevel * state.probLevel * 80),
+    getPrice: () => Math.floor(80 + state.probLevel * 150 + state.probLevel * state.probLevel * 100),
     getExtra: () => `已购 ${state.probLevel} 次 (当前 ${state.headsProb}%)`,
     canBuy: () => state.headsProb < 90,
     apply: () => { state.headsProb += 2; state.probLevel++; },
   },
   {
     id: 'speed_up', name: '加速投掷', desc: '动画速度 +2%',
-    getPrice: () => Math.floor(100 + state.speedLevel * 180 + state.speedLevel * state.speedLevel * 60),
+    getPrice: () => Math.floor(60 + state.speedLevel * 120 + state.speedLevel * state.speedLevel * 80),
     getExtra: () => `已购 ${state.speedLevel} 次`,
     canBuy: () => state.speedLevel < 40,
     apply: () => { state.animDuration *= 0.98; state.speedLevel++; },
   },
   {
     id: 'gold_up', name: '金币加成', desc: '每次正面额外 +1 金币',
-    getPrice: () => Math.floor(80 + state.goldLevel * 150 + state.goldLevel * state.goldLevel * 50),
+    getPrice: () => Math.floor(50 + state.goldLevel * 100 + state.goldLevel * state.goldLevel * 60),
     getExtra: () => `已购 ${state.goldLevel} 次 (每次正面 +${state.goldPerHeads})`,
     canBuy: () => state.goldLevel < 50,
     apply: () => { state.goldPerHeads += 1; state.goldLevel++; },
   },
   {
     id: 'pity', name: '失败保底', desc: '每累计10次反面获得金币补偿',
-    getPrice: () => Math.floor(50 + state.pityLevel * 100 + state.pityLevel * state.pityLevel * 40),
-    getExtra: () => state.pityLevel > 0 ? `当前每10次反面 +${state.pityLevel}g (${state.pityLevel}/10)` : '',
+    getPrice: () => Math.floor(80 + state.pityLevel * 200 + state.pityLevel * state.pityLevel * 80),
+    getExtra: () => state.pityLevel > 0 ? `当前每10次反面 +${state.pityLevel * 3}g (${state.pityLevel}/10)` : '',
     canBuy: () => state.pityLevel < 10,
     apply: () => { state.pityLevel++; },
   },
   {
     id: 'mystery', name: '？？？', desc: '？？？', isMystery: true,
-    getPrice: () => Math.min(10000, Math.floor(2000 + state.pets.length * 3000 + state.pets.length * state.pets.length * 1500)),
-    getExtra: () => { const n = state.pets.filter(id => id < 7).length; return n > 0 ? `已拥有 ${n} 只` : ''; },
+    getPrice: () => Math.floor(2000 + state.pets.length * 2000 + state.pets.length * state.pets.length * 2000),
+    getExtra: () => { const n = state.pets.filter(id => id < 7).length; const kinds = new Set(state.pets.filter(id => id < 7)).size; const pity = kinds < 7 ? ` · 保底 ${state.eggPity}/10` : ''; return n > 0 ? `${kinds}种/${n}只${pity}` : ''; },
     canBuy: () => true,
     apply: () => { grantRandomPet(); },
   },
@@ -767,14 +768,14 @@ function resolveFlip() {
       if (Math.random() < 0.01 && !state.pets.includes(7)) {
         grantShinyPet();
       } else {
-        state.gold += 50 + state.completions * 20;
+        state.gold += 50 + state.completions * 20 + state.completions * state.completions * 5;
       }
     }
   } else {
     state.streak = 0;
     state.tailStreak++;
     if (state.pityLevel > 0 && state.tailStreak % 10 === 0) {
-      state.gold += state.pityLevel;
+      state.gold += state.pityLevel * 3;
     }
   }
 
@@ -950,7 +951,34 @@ const petElements = []; // DOM references for walking pets
 
 function grantRandomPet() {
   const pool = PET_DEFS.filter(p => !p.shiny);
-  const pet = pool[Math.floor(Math.random() * pool.length)];
+  const owned = new Set(state.pets.filter(id => id < 7));
+  const unowned = pool.filter(p => !owned.has(p.id));
+
+  let pet;
+  if (unowned.length === 0) {
+    // 全收集了，纯随机
+    pet = pool[Math.floor(Math.random() * pool.length)];
+    state.eggPity = 0;
+  } else if (state.eggPity >= 9) {
+    // 硬保底：连续10次没出新，必出新
+    pet = unowned[Math.floor(Math.random() * unowned.length)];
+    state.eggPity = 0;
+  } else {
+    // 软保底：每次重复，下次出新概率 +10%
+    const newChance = Math.min(0.9, 0.3 + state.eggPity * 0.1);
+    if (Math.random() < newChance && unowned.length > 0) {
+      pet = unowned[Math.floor(Math.random() * unowned.length)];
+      state.eggPity = 0;
+    } else {
+      pet = pool[Math.floor(Math.random() * pool.length)];
+      if (owned.has(pet.id)) {
+        state.eggPity++;
+      } else {
+        state.eggPity = 0;
+      }
+    }
+  }
+
   state.pets.push(pet.id);
   spawnPetOnScreen(pet);
   showPetNotify(pet);
@@ -1129,7 +1157,7 @@ function saveGame() {
     completions: state.completions,
     speedLevel: state.speedLevel, probLevel: state.probLevel,
     goldLevel: state.goldLevel, pityLevel: state.pityLevel,
-    tailStreak: state.tailStreak, totalSpent: state.totalSpent, pets: state.pets,
+    tailStreak: state.tailStreak, totalSpent: state.totalSpent, eggPity: state.eggPity, pets: state.pets,
   }));
 }
 
