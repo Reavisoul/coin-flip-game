@@ -659,7 +659,7 @@ const shopItemDefs = [
     },
   },
   {
-    id: 'combo', name: '连击加成', desc: '连续正面第N次额外 +N×等级 金币',
+    id: 'combo', name: '连击加成', desc: '连击额外获得金币',
     getPrice: () => Math.floor(100 + state.comboLevel * 200 + state.comboLevel * state.comboLevel * 120),
     getExtra: () => state.comboLevel > 0 ? `当前等级 ${state.comboLevel} (10连额外 +${45 * state.comboLevel}g)` : '',
     canBuy: () => state.comboLevel < 15,
