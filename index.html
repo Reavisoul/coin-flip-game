@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>丢硬币</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  z-index: 10;
+}
+
+/* Stats Bar */
+.stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.stat-item { display: flex; align-items: center; gap: 6px; }
+.stat-label { color: rgba(255,255,255,0.5); font-size: 12px; }
+.stat-value { font-weight: 700; font-size: 18px; }
+.gold-value { color: #ffd700; }
+.prob-value { color: #7dd3fc; }
+
+/* Streak Dots */
+.streak-section { text-align: center; width: 100%; }
+.streak-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+.streak-dots { display: flex; justify-content: center; gap: 8px; }
+
+.dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: rgba(255,255,255,0.2);
+}
+
+.dot.active {
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  border-color: #ffd700;
+  box-shadow: 0 0 12px rgba(255,215,0,0.5);
+  color: #5a3e00; font-weight: 700; transform: scale(1.1);
+}
+
+/* Coin Area */
+.coin-area { perspective: 800px; width: 180px; height: 180px; margin: 10px 0; }
+
+.coin {
+  width: 100%; height: 100%;
+  position: relative; transform-style: preserve-3d;
+  transform: rotateX(0deg);
+}
+
+.coin-face {
+  position: absolute; width: 100%; height: 100%;
+  border-radius: 50%; backface-visibility: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 52px; font-weight: 900;
+}
+
+.coin-front {
+  background: radial-gradient(circle at 35% 35%, #ffe88a, #ffd700 40%, #c8a200 100%);
+  color: #7a5c00; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,0.2), inset 0 4px 8px rgba(255,255,255,0.3), 0 8px 32px rgba(255,215,0,0.3);
+  border: 4px solid #b8960f;
+}
+
+.coin-back {
+  background: radial-gradient(circle at 35% 35%, #c0c0c0, #a0a0a0 40%, #707070 100%);
+  color: #404040; text-shadow: 1px 1px 2px rgba(255,255,255,0.2);
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3), inset 0 4px 8px rgba(255,255,255,0.2), 0 8px 32px rgba(0,0,0,0.2);
+  border: 4px solid #606060;
+  transform: rotateX(180deg);
+}
+
+/* Result / Progress Text */
+.result-text {
+  height: 32px; font-size: 18px; font-weight: 700;
+  opacity: 0; transition: opacity 0.3s;
+}
+.result-text.show { opacity: 1; }
+.result-text.heads-result { color: #ffd700; }
+.result-text.tails-result { color: #ff6b6b; }
+.result-text.progress-result { color: #7dd3fc; }
+
+/* Float Text */
+.float-text {
+  position: fixed; font-weight: 700; font-size: 22px;
+  pointer-events: none; z-index: 100;
+  animation: floatUp 1s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
+}
+
+/* Buttons */
+.flip-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+.flip-btn {
+  padding: 12px 20px; font-size: 16px; font-weight: 700; font-family: inherit;
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  border: none; border-radius: 50px; cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(255,215,0,0.25);
+}
+.flip-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(255,215,0,0.4); }
+.flip-btn:active:not(:disabled) { transform: translateY(1px) scale(0.97); }
+.flip-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.stop-btn {
+  padding: 12px 36px; font-size: 16px; font-weight: 700; font-family: inherit;
+  color: #fff; background: linear-gradient(135deg, #ff4444, #cc2222);
+  border: none; border-radius: 50px; cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(255,68,68,0.3);
+  display: none;
+}
+.stop-btn:hover { transform: translateY(-2px); }
+
+.bottom-btns { display: flex; gap: 10px; }
+
+.shop-btn, .codex-btn {
+  padding: 10px 24px; font-size: 15px; font-weight: 600; font-family: inherit;
+  color: #fff; background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 50px; cursor: pointer; transition: all 0.2s;
+  backdrop-filter: blur(5px);
+}
+.shop-btn:hover, .codex-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); }
+.codex-btn { color: #c084fc; border-color: rgba(192,132,252,0.3); }
+
+/* Shop Overlay */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; opacity: 1; transition: opacity 0.3s;
+}
+.overlay.hidden { opacity: 0; pointer-events: none; }
+
+.panel {
+  background: linear-gradient(135deg, #1e1b3a, #2a2650);
+  border-radius: 20px; padding: 28px 24px;
+  width: 90%; max-width: 400px; max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.panel-title { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 20px; color: #ffd700; }
+.panel-sub { text-align: center; font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+.panel-sub span { color: #ffd700; font-weight: 700; font-size: 18px; }
+
+.shop-items { display: flex; flex-direction: column; gap: 10px; }
+
+.shop-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; background: rgba(255,255,255,0.04);
+  border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.2s;
+}
+.shop-item:hover:not(.shop-item-disabled) { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
+.shop-item-disabled { opacity: 0.4; }
+.shop-item.mystery-item { border-color: rgba(192,132,252,0.2); }
+.shop-item.mystery-item:hover:not(.shop-item-disabled) { border-color: rgba(192,132,252,0.4); background: rgba(192,132,252,0.08); }
+
+.item-info { flex: 1; }
+.item-name { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+.item-name.mystery { color: #c084fc; }
+.item-desc { font-size: 12px; color: rgba(255,255,255,0.45); }
+.item-extra { font-size: 11px; color: rgba(255,215,0,0.6); margin-top: 2px; }
+
+.buy-btn {
+  padding: 8px 18px; font-size: 13px; font-weight: 700; font-family: inherit;
+  color: #1a1a2e; background: linear-gradient(135deg, #ffd700, #ffaa00);
+  border: none; border-radius: 20px; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap; margin-left: 12px;
+}
+.buy-btn:hover:not(:disabled) { transform: scale(1.05); }
+.buy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.buy-btn.mystery-btn { background: linear-gradient(135deg, #c084fc, #9055e0); color: #fff; }
+
+.close-btn {
+  display: block; margin: 20px auto 0; padding: 10px 40px;
+  font-size: 15px; font-family: inherit;
+  color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 50px;
+  cursor: pointer; transition: all 0.2s;
+}
+.close-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
+
+/* Codex */
+.codex-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 12px; margin-bottom: 16px;
+}
+
+.codex-card {
+  padding: 16px; border-radius: 14px; text-align: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.3s;
+}
+.codex-card.unlocked { border-color: rgba(255,255,255,0.15); }
+.codex-card.locked { opacity: 0.35; }
+
+.codex-pet-icon {
+  width: 50px; height: 50px; border-radius: 50%;
+  margin: 0 auto 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; position: relative;
+}
+
+.codex-pet-name { font-size: 14px; font-weight: 600; }
+
+/* Pet on screen */
+.pet {
+  position: fixed; width: 44px; height: 44px;
+  border-radius: 50%; z-index: 5;
+  transition: left 3s ease-in-out, top 3s ease-in-out;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 900; color: rgba(0,0,0,0.5);
+  animation: petBounce 1.2s ease-in-out infinite;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.pet::after {
+  content: ''; position: absolute;
+  width: 6px; height: 6px; background: rgba(255,255,255,0.7);
+  border-radius: 50%; top: 12px; left: 10px;
+  box-shadow: 16px 0 0 rgba(255,255,255,0.7);
+}
+.pet-flip { transform: scaleX(-1); }
+
+@keyframes petBounce {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -6px; }
+}
+
+/* Pet get notification */
+.pet-notify {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 24px 40px; border-radius: 20px;
+  background: linear-gradient(135deg, #1e1b3a, #2a2650);
+  border: 2px solid rgba(192,132,252,0.4);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  z-index: 2000; text-align: center;
+  animation: notifyIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes notifyIn {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.pet-notify-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900; color: rgba(0,0,0,0.5);
+  position: relative;
+}
+.pet-notify-icon::after {
+  content: ''; position: absolute;
+  width: 8px; height: 8px; background: rgba(255,255,255,0.7);
+  border-radius: 50%; top: 18px; left: 16px;
+  box-shadow: 22px 0 0 rgba(255,255,255,0.7);
+}
+.pet-notify-name { font-size: 18px; font-weight: 700; color: #c084fc; margin-bottom: 4px; }
+.pet-notify-hint { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+/* Screen shake */
+.shake { animation: shake 0.4s ease-out; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Confetti */
+.confetti-piece {
+  position: fixed; width: 10px; height: 10px; top: -10px;
+  z-index: 2001; pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+}
+
+/* Scrollbar */
+.panel::-webkit-scrollbar { width: 4px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="game" id="game">
+  <div class="stats">
+    <div class="stat-item">
+      <div>
+        <div class="stat-label">金币</div>
+        <div class="stat-value gold-value" id="goldDisplay">0</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div>
+        <div class="stat-label">正面率</div>
+        <div class="stat-value prob-value" id="probDisplay">20%</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div>
+        <div class="stat-label">完成次数</div>
+        <div class="stat-value" id="compDisplay">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="streak-section">
+    <div class="streak-label">连续正面进度</div>
+    <div class="streak-dots" id="streakDots"></div>
+  </div>
+
+  <div class="coin-area">
+    <div class="coin" id="coin">
+      <div class="coin-face coin-front">正</div>
+      <div class="coin-face coin-back">反</div>
+    </div>
+  </div>
+
+  <div class="result-text" id="resultText"></div>
+
+  <div class="flip-group" id="flipGroup">
+    <button class="flip-btn" data-count="1">投 1 次</button>
+    <button class="flip-btn" data-count="10">投 10 次</button>
+    <button class="flip-btn" data-count="100">投 100 次</button>
+    <button class="flip-btn" data-count="1000">投 1000 次</button>
+  </div>
+  <button class="stop-btn" id="stopBtn">停止</button>
+
+  <div class="bottom-btns">
+    <button class="shop-btn" id="shopBtn">商店</button>
+    <button class="codex-btn hidden" id="codexBtn" style="display:none;">图鉴</button>
+  </div>
+</div>
+
+<!-- Shop -->
+<div class="overlay hidden" id="shopOverlay">
+  <div class="panel">
+    <div class="panel-title">商店</div>
+    <div class="panel-sub">持有 <span id="shopGold">0</span> 金币</div>
+    <div class="shop-items" id="shopItems"></div>
+    <button class="close-btn" onclick="document.getElementById('shopOverlay').classList.add('hidden')">关闭</button>
+  </div>
+</div>
+
+<!-- Codex -->
+<div class="overlay hidden" id="codexOverlay">
+  <div class="panel">
+    <div class="panel-title" style="color:#c084fc;">宠物图鉴</div>
+    <div class="panel-sub">已收集 <span id="codexCount">0</span> / 7</div>
+    <div class="codex-grid" id="codexGrid"></div>
+    <button class="close-btn" onclick="document.getElementById('codexOverlay').classList.add('hidden')">关闭</button>
+  </div>
+</div>
+
+<script>
+// ── Pet Definitions ──
+const PET_DEFS = [
+  { id: 0, name: '赤币宠', char: '赤', color: '#ff4444', bg: 'radial-gradient(circle at 35% 35%, #ff8888, #ff4444 50%, #cc2222)' },
+  { id: 1, name: '橙币宠', char: '橙', color: '#ff8800', bg: 'radial-gradient(circle at 35% 35%, #ffbb55, #ff8800 50%, #cc6600)' },
+  { id: 2, name: '黄币宠', char: '黄', color: '#ffcc00', bg: 'radial-gradient(circle at 35% 35%, #ffee66, #ffcc00 50%, #cc9900)' },
+  { id: 3, name: '绿币宠', char: '绿', color: '#22cc44', bg: 'radial-gradient(circle at 35% 35%, #66ee88, #22cc44 50%, #119933)' },
+  { id: 4, name: '青币宠', char: '青', color: '#00ccbb', bg: 'radial-gradient(circle at 35% 35%, #55eedd, #00ccbb 50%, #009988)' },
+  { id: 5, name: '蓝币宠', char: '蓝', color: '#4488ff', bg: 'radial-gradient(circle at 35% 35%, #88bbff, #4488ff 50%, #2266cc)' },
+  { id: 6, name: '紫币宠', char: '紫', color: '#aa44ff', bg: 'radial-gradient(circle at 35% 35%, #cc88ff, #aa44ff 50%, #7722cc)' },
+];
+
+// ── State ──
+const state = {
+  gold: 0,
+  streak: 0,
+  headsProb: 20,
+  goldPerHeads: 5,
+  animDuration: 1500,
+  totalFlips: 0,
+  completions: 0,
+  speedLevel: 0,
+  probLevel: 0,
+  goldLevel: 0,
+  pets: [],         // owned pet IDs
+  // runtime (not saved)
+  flipping: false,
+  stopRequested: false,
+  lastRotation: 0,
+};
+
+// ── Shop Items ──
+const shopItemDefs = [
+  {
+    id: 'prob_up', name: '概率提升', desc: '正面概率 +2%', price: 3000,
+    getExtra: () => `已购 ${state.probLevel} 次 (当前 ${state.headsProb}%)`,
+    canBuy: () => state.headsProb < 90,
+    apply: () => { state.headsProb += 2; state.probLevel++; },
+  },
+  {
+    id: 'speed_up', name: '加速投掷', desc: '动画速度 +2%', price: 3000,
+    getExtra: () => `已购 ${state.speedLevel} 次`,
+    canBuy: () => state.speedLevel < 40,
+    apply: () => { state.animDuration *= 0.98; state.speedLevel++; },
+  },
+  {
+    id: 'gold_up', name: '金币加成', desc: '每次正面额外 +1 金币', price: 2500,
+    getExtra: () => `已购 ${state.goldLevel} 次 (每次正面 +${state.goldPerHeads})`,
+    canBuy: () => state.goldLevel < 50,
+    apply: () => { state.goldPerHeads += 1; state.goldLevel++; },
+  },
+  {
+    id: 'mystery', name: '？？？', desc: '？？？', price: 10000, isMystery: true,
+    getExtra: () => state.pets.length >= 7 ? '已收集全部' : `已拥有 ${state.pets.length}/7`,
+    canBuy: () => state.pets.length < 7,
+    apply: () => { grantRandomPet(); },
+  },
+];
+
+// ── DOM ──
+const coinEl = document.getElementById('coin');
+const flipGroup = document.getElementById('flipGroup');
+const stopBtn = document.getElementById('stopBtn');
+const shopBtn = document.getElementById('shopBtn');
+const codexBtn = document.getElementById('codexBtn');
+const shopOverlay = document.getElementById('shopOverlay');
+const codexOverlay = document.getElementById('codexOverlay');
+const shopItemsEl = document.getElementById('shopItems');
+const goldDisplay = document.getElementById('goldDisplay');
+const probDisplay = document.getElementById('probDisplay');
+const compDisplay = document.getElementById('compDisplay');
+const shopGoldEl = document.getElementById('shopGold');
+const streakDotsEl = document.getElementById('streakDots');
+const resultText = document.getElementById('resultText');
+const codexGrid = document.getElementById('codexGrid');
+const codexCount = document.getElementById('codexCount');
+const gameEl = document.getElementById('game');
+
+// ── Init Dots ──
+(function initDots() {
+  for (let i = 0; i < 10; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot'; d.textContent = i + 1;
+    streakDotsEl.appendChild(d);
+  }
+})();
+
+// ── UI Update ──
+function updateUI() {
+  goldDisplay.textContent = state.gold;
+  probDisplay.textContent = state.headsProb + '%';
+  compDisplay.textContent = state.completions;
+  const dots = streakDotsEl.children;
+  for (let i = 0; i < 10; i++) dots[i].classList.toggle('active', i < state.streak);
+  codexBtn.style.display = state.pets.length > 0 ? '' : 'none';
+}
+
+function showResultText(text, cls) {
+  resultText.className = 'result-text show ' + cls;
+  resultText.textContent = text;
+}
+
+function clearResultText() { resultText.className = 'result-text'; }
+
+function spawnFloatText(text, color, x, y) {
+  const el = document.createElement('div');
+  el.className = 'float-text'; el.textContent = text;
+  el.style.color = color; el.style.left = x + 'px'; el.style.top = y + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+// ── Coin Animation (single flip) ──
+function animateFlip(isHeads) {
+  return new Promise(resolve => {
+    const startRot = state.lastRotation;
+    const desiredEnd = isHeads ? 0 : 180;
+    const targetRot = 5 * 360 + (desiredEnd - startRot % 360 + 360) % 360;
+
+    const anim = coinEl.animate([
+      { transform: `translateY(0px) rotateX(${startRot}deg)` },
+      { transform: `translateY(-220px) rotateX(${startRot + targetRot * 0.45}deg)`, offset: 0.4 },
+      { transform: `translateY(-220px) rotateX(${startRot + targetRot * 0.55}deg)`, offset: 0.55 },
+      { transform: `translateY(0px) rotateX(${startRot + targetRot}deg)` },
+    ], { duration: state.animDuration, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)', fill: 'forwards' });
+
+    const safety = setTimeout(() => resolve(), state.animDuration + 300);
+
+    anim.onfinish = () => {
+      clearTimeout(safety);
+      anim.cancel();
+      const finalRot = (startRot + targetRot) % 360;
+      state.lastRotation = finalRot;
+      coinEl.style.transform = `rotateX(${finalRot}deg)`;
+      resolve();
+    };
+  });
+}
+
+// Quick visual for multi-flip
+function quickFlipVisual(isHeads) {
+  const targetRot = isHeads ? 0 : 180;
+  coinEl.style.transition = 'transform 0.08s ease-out';
+  coinEl.style.transform = `rotateX(${targetRot}deg)`;
+  state.lastRotation = targetRot;
+  setTimeout(() => { coinEl.style.transition = ''; }, 100);
+}
+
+// ── Core Flip Logic ──
+function resolveFlip() {
+  const isHeads = Math.random() * 100 < state.headsProb;
+  state.totalFlips++;
+
+  if (isHeads) {
+    state.gold += state.goldPerHeads;
+    state.streak++;
+    if (state.streak >= 10) {
+      state.completions++;
+      state.gold += 50 + state.completions * 20;
+      state.streak = 0;
+    }
+  } else {
+    state.streak = 0;
+  }
+
+  return isHeads;
+}
+
+// ── Flip Controller ──
+async function startFlip(count) {
+  if (state.flipping) return;
+  state.flipping = true;
+  state.stopRequested = false;
+  flipGroup.style.display = 'none';
+  if (count > 1) stopBtn.style.display = '';
+
+  if (count === 1) {
+    clearResultText();
+    const isHeads = resolveFlip();
+    await animateFlip(isHeads);
+
+    if (isHeads) {
+      showResultText(`正面！+${state.goldPerHeads} 金币`, 'heads-result');
+      const rect = coinEl.getBoundingClientRect();
+      spawnFloatText(`+${state.goldPerHeads}`, '#ffd700', rect.left + rect.width / 2 - 15, rect.top);
+    } else {
+      showResultText('反面...', 'tails-result');
+      gameEl.classList.add('shake');
+      setTimeout(() => gameEl.classList.remove('shake'), 400);
+    }
+    updateUI();
+    saveGame();
+  } else {
+    // Multi-flip
+    const batchSize = count >= 1000 ? 10 : count >= 100 ? 3 : 1;
+    const delay = count >= 1000 ? 25 : count >= 100 ? 40 : 100;
+    let done = 0;
+
+    await new Promise(resolve => {
+      function tick() {
+        if (state.stopRequested || done >= count) { resolve(); return; }
+
+        const batchEnd = Math.min(done + batchSize, count);
+        let lastResult = false;
+        for (let i = done; i < batchEnd; i++) {
+          lastResult = resolveFlip();
+          if (state.stopRequested) { done = i + 1; break; }
+        }
+        done = Math.min(batchEnd, count);
+
+        quickFlipVisual(lastResult);
+        showResultText(`投掷中... ${done}/${count}`, 'progress-result');
+        updateUI();
+
+        if (done < count && !state.stopRequested) {
+          setTimeout(tick, delay);
+        } else {
+          resolve();
+        }
+      }
+      tick();
+    });
+
+    showResultText(`完成 ${done} 次投掷`, 'progress-result');
+    saveGame();
+  }
+
+  state.flipping = false;
+  flipGroup.style.display = '';
+  stopBtn.style.display = 'none';
+}
+
+// Button listeners
+flipGroup.addEventListener('click', e => {
+  const btn = e.target.closest('.flip-btn');
+  if (btn && !state.flipping) startFlip(parseInt(btn.dataset.count));
+});
+
+stopBtn.addEventListener('click', () => { state.stopRequested = true; });
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !state.flipping && shopOverlay.classList.contains('hidden') && codexOverlay.classList.contains('hidden')) {
+    e.preventDefault();
+    startFlip(1);
+  }
+});
+
+// ── Shop ──
+function renderShop() {
+  shopGoldEl.textContent = state.gold;
+  shopItemsEl.innerHTML = '';
+
+  shopItemDefs.forEach(item => {
+    const canAfford = state.gold >= item.price;
+    const canBuy = item.canBuy() && canAfford;
+    const div = document.createElement('div');
+    div.className = 'shop-item' + (canBuy ? '' : ' shop-item-disabled') + (item.isMystery ? ' mystery-item' : '');
+
+    const extra = item.getExtra();
+    div.innerHTML = `
+      <div class="item-info">
+        <div class="item-name${item.isMystery ? ' mystery' : ''}">${item.name}</div>
+        <div class="item-desc">${item.desc}</div>
+        ${extra ? `<div class="item-extra">${extra}</div>` : ''}
+      </div>
+      <button class="buy-btn${item.isMystery ? ' mystery-btn' : ''}" ${canBuy ? '' : 'disabled'}>${item.price}g</button>
+    `;
+
+    div.querySelector('.buy-btn').addEventListener('click', () => {
+      if (!item.canBuy() || state.gold < item.price) return;
+      state.gold -= item.price;
+      item.apply();
+      updateUI(); saveGame(); renderShop();
+    });
+
+    shopItemsEl.appendChild(div);
+  });
+}
+
+shopBtn.addEventListener('click', () => { shopOverlay.classList.remove('hidden'); renderShop(); });
+shopOverlay.addEventListener('click', e => { if (e.target === shopOverlay) shopOverlay.classList.add('hidden'); });
+
+// ── Pet System ──
+const petElements = []; // DOM references for walking pets
+
+function grantRandomPet() {
+  const unowned = PET_DEFS.filter(p => !state.pets.includes(p.id));
+  if (unowned.length === 0) return;
+
+  const pet = unowned[Math.floor(Math.random() * unowned.length)];
+  state.pets.push(pet.id);
+  spawnPetOnScreen(pet);
+  showPetNotify(pet);
+  updateUI();
+}
+
+function showPetNotify(pet) {
+  const div = document.createElement('div');
+  div.className = 'pet-notify';
+  div.innerHTML = `
+    <div class="pet-notify-icon" style="background:${pet.bg};border:3px solid ${pet.color}">${pet.char}</div>
+    <div class="pet-notify-name">${pet.name}</div>
+    <div class="pet-notify-hint">${state.pets.length === 1 ? '宠物图鉴已解锁！' : '新宠物入队！'}</div>
+  `;
+  document.body.appendChild(div);
+  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.5s'; }, 2000);
+  setTimeout(() => div.remove(), 2500);
+}
+
+function spawnPetOnScreen(pet) {
+  const el = document.createElement('div');
+  el.className = 'pet';
+  el.style.background = pet.bg;
+  el.style.border = `3px solid ${pet.color}`;
+  el.textContent = pet.char;
+  el.title = pet.name;
+
+  const startX = 40 + Math.random() * (window.innerWidth - 120);
+  const startY = 40 + Math.random() * (window.innerHeight - 120);
+  el.style.left = startX + 'px';
+  el.style.top = startY + 'px';
+
+  document.body.appendChild(el);
+  petElements.push(el);
+
+  function wander() {
+    const cx = parseFloat(el.style.left) || startX;
+    const dx = (Math.random() - 0.5) * 250;
+    const dy = (Math.random() - 0.5) * 250;
+    const nx = Math.max(20, Math.min(window.innerWidth - 60, cx + dx));
+    const ny = Math.max(20, Math.min(window.innerHeight - 60, parseFloat(el.style.top) + dy));
+    if (dx < 0) el.classList.add('pet-flip'); else el.classList.remove('pet-flip');
+    el.style.left = nx + 'px';
+    el.style.top = ny + 'px';
+    setTimeout(wander, 2500 + Math.random() * 3000);
+  }
+  setTimeout(wander, 1000 + Math.random() * 2000);
+}
+
+function restoreAllPets() {
+  state.pets.forEach(id => {
+    const pet = PET_DEFS.find(p => p.id === id);
+    if (pet) spawnPetOnScreen(pet);
+  });
+}
+
+// ── Codex ──
+function renderCodex() {
+  codexCount.textContent = state.pets.length;
+  codexGrid.innerHTML = '';
+
+  PET_DEFS.forEach(pet => {
+    const owned = state.pets.includes(pet.id);
+    const card = document.createElement('div');
+    card.className = 'codex-card ' + (owned ? 'unlocked' : 'locked');
+
+    card.innerHTML = `
+      <div class="codex-pet-icon" style="background:${owned ? pet.bg : 'rgba(255,255,255,0.08)'};border:3px solid ${owned ? pet.color : 'rgba(255,255,255,0.1)'}">
+        ${owned ? pet.char : '?'}
+      </div>
+      <div class="codex-pet-name" style="color:${owned ? pet.color : 'rgba(255,255,255,0.3)'}">
+        ${owned ? pet.name : '???'}
+      </div>
+    `;
+    codexGrid.appendChild(card);
+  });
+}
+
+codexBtn.addEventListener('click', () => { renderCodex(); codexOverlay.classList.remove('hidden'); });
+codexOverlay.addEventListener('click', e => { if (e.target === codexOverlay) codexOverlay.classList.add('hidden'); });
+
+// ── Confetti ──
+function spawnConfetti() {
+  const colors = ['#ffd700', '#ff6b6b', '#7dd3fc', '#00dfa2', '#c084fc', '#ff9f43'];
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    p.style.animationDelay = Math.random() + 's';
+    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    p.style.width = (6 + Math.random() * 8) + 'px';
+    p.style.height = (6 + Math.random() * 8) + 'px';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 4000);
+  }
+}
+
+// ── Save / Load ──
+const SAVE_KEY = 'coin_flip_save';
+
+function saveGame() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify({
+    gold: state.gold, streak: state.streak,
+    headsProb: state.headsProb, goldPerHeads: state.goldPerHeads,
+    animDuration: state.animDuration, totalFlips: state.totalFlips,
+    completions: state.completions,
+    speedLevel: state.speedLevel, probLevel: state.probLevel,
+    goldLevel: state.goldLevel, pets: state.pets,
+  }));
+}
+
+function loadGame() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    Object.keys(d).forEach(k => { if (k in state) state[k] = d[k]; });
+    state.lastRotation = 0; state.flipping = false;
+    coinEl.style.transform = 'rotateX(0deg)';
+  } catch (e) {}
+}
+
+// ── Init ──
+loadGame();
+updateUI();
+restoreAllPets();
+</script>
+</body>
+</html>
