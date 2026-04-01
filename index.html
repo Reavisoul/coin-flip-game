@@ -330,7 +330,7 @@ body {
 /* Pet on screen */
 .pet {
   position: fixed; width: 44px; height: 44px;
-  border-radius: 50%; z-index: 5;
+  border-radius: 50%; z-index: 1500;
   transition: left 3s ease-in-out, top 3s ease-in-out;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   font-size: 10px; font-weight: 900; color: rgba(0,0,0,0.5);
@@ -983,7 +983,7 @@ function spawnPetOnScreen(pet) {
   el.className = 'pet' + (pet.shiny ? ' pet-shiny' : '');
   el.style.background = pet.bg;
   el.style.border = `3px solid ${pet.color}`;
-  el.textContent = pet.char;
+  el.textContent = '';
   el.title = pet.name;
 
   const startX = 40 + Math.random() * (window.innerWidth - 120);
@@ -992,15 +992,17 @@ function spawnPetOnScreen(pet) {
   el.style.top = startY + 'px';
 
   // Pet drag
-  let petDragging = false, pox, poy;
+  let petDragging = false, pox, poy, wanderTimer = null;
   el.addEventListener('mousedown', e => {
     e.preventDefault(); petDragging = true;
+    clearTimeout(wanderTimer);
     pox = e.clientX - parseFloat(el.style.left);
     poy = e.clientY - parseFloat(el.style.top);
     el.style.transition = 'none'; el.style.zIndex = '20';
   });
   el.addEventListener('touchstart', e => {
     const t = e.touches[0]; petDragging = true;
+    clearTimeout(wanderTimer);
     pox = t.clientX - parseFloat(el.style.left);
     poy = t.clientY - parseFloat(el.style.top);
     el.style.transition = 'none'; el.style.zIndex = '20';
@@ -1017,10 +1019,10 @@ function spawnPetOnScreen(pet) {
     el.style.top = (t.clientY - poy) + 'px';
   });
   window.addEventListener('mouseup', () => {
-    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = ''; }
+    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = ''; wanderTimer = setTimeout(wander, 3000); }
   });
   window.addEventListener('touchend', () => {
-    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = ''; }
+    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = ''; wanderTimer = setTimeout(wander, 3000); }
   });
 
   el.addEventListener('click', () => {
@@ -1042,6 +1044,7 @@ function spawnPetOnScreen(pet) {
   petElements.push(el);
 
   function wander() {
+    if (petDragging) return;
     const cx = parseFloat(el.style.left) || startX;
     const dx = (Math.random() - 0.5) * 250;
     const dy = (Math.random() - 0.5) * 250;
@@ -1050,9 +1053,9 @@ function spawnPetOnScreen(pet) {
     if (dx < 0) el.classList.add('pet-flip'); else el.classList.remove('pet-flip');
     el.style.left = nx + 'px';
     el.style.top = ny + 'px';
-    setTimeout(wander, 2500 + Math.random() * 3000);
+    wanderTimer = setTimeout(wander, 2500 + Math.random() * 3000);
   }
-  setTimeout(wander, 1000 + Math.random() * 2000);
+  wanderTimer = setTimeout(wander, 1000 + Math.random() * 2000);
 }
 
 function restoreAllPets() {
