@@ -837,13 +837,14 @@ async function startFlip(count) {
     saveGame();
   } else {
     // Multi-flip
-    let done = 0;
+    let done = 0, heads = 0, totalEarned = 0;
 
     for (let i = 0; i < count; i++) {
       if (state.stopRequested) break;
       clearResultText();
       const { isHeads, earned } = resolveFlip();
       done = i + 1;
+      if (isHeads) { heads++; totalEarned += earned; }
 
       await animateFlip(isHeads);
 
@@ -859,6 +860,7 @@ async function startFlip(count) {
       updateUI();
       saveGame();
     }
+    showResultText(`投掷 ${done} 次 · 正面 ${heads} 次 · 获得 ${totalEarned}g`, 'heads-result');
   }
 
   state.flipping = false;
