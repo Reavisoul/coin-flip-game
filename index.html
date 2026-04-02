@@ -461,6 +461,33 @@ body {
 .panel::-webkit-scrollbar-track { background: transparent; }
 .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
+/* 海淀特供商店项 - 黑金 */
+.shop-item.skin-item {
+  background: linear-gradient(135deg, #0d0a00, #1a1200);
+  border: 1px solid rgba(255,215,0,0.3);
+  box-shadow: inset 0 0 20px rgba(255,215,0,0.05), 0 0 12px rgba(255,215,0,0.08);
+}
+.shop-item.skin-item:hover:not(.shop-item-disabled) {
+  background: linear-gradient(135deg, #1a1200, #2a1f00);
+  border-color: rgba(255,215,0,0.5);
+  box-shadow: inset 0 0 20px rgba(255,215,0,0.08), 0 0 20px rgba(255,215,0,0.15);
+}
+.item-name.skin-name {
+  background: linear-gradient(90deg, #b8860b, #ffd700, #fff8dc, #ffd700, #b8860b);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: goldShimmer 3s linear infinite;
+}
+.buy-btn.skin-btn {
+  background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
+  background-size: 200% auto;
+  animation: goldShimmer 3s linear infinite;
+  color: #0d0a00;
+  box-shadow: 0 2px 12px rgba(255,215,0,0.3);
+}
+
 /* ══════ 海淀特供金皮肤 ══════ */
 
 @keyframes goldShimmer {
@@ -1099,16 +1126,16 @@ function renderShop() {
     const canAfford = state.gold >= price;
     const canBuy = item.canBuy() && canAfford;
     const div = document.createElement('div');
-    div.className = 'shop-item' + (canBuy ? '' : ' shop-item-disabled') + (item.isMystery ? ' mystery-item' : '');
+    div.className = 'shop-item' + (canBuy ? '' : ' shop-item-disabled') + (item.isMystery ? ' mystery-item' : '') + (item.id === 'skin' ? ' skin-item' : '');
 
     const extra = item.getExtra();
     div.innerHTML = `
       <div class="item-info">
-        <div class="item-name${item.isMystery ? ' mystery' : ''}">${item.name}</div>
+        <div class="item-name${item.isMystery ? ' mystery' : ''}${item.id === 'skin' ? ' skin-name' : ''}">${item.name}</div>
         <div class="item-desc">${item.desc}</div>
         ${extra ? `<div class="item-extra">${extra}</div>` : ''}
       </div>
-      <button class="buy-btn${item.isMystery ? ' mystery-btn' : ''}" ${canBuy ? '' : 'disabled'}>${price}g</button>
+      <button class="buy-btn${item.isMystery ? ' mystery-btn' : ''}${item.id === 'skin' ? ' skin-btn' : ''}" ${canBuy ? '' : 'disabled'}>${price}g</button>
     `;
 
     div.querySelector('.buy-btn').addEventListener('click', () => {
