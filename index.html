@@ -488,6 +488,58 @@ body {
   box-shadow: 0 2px 12px rgba(255,215,0,0.3);
 }
 
+/* 皇冠商店项 - 彩虹 */
+@keyframes rainbowBorder {
+  0% { border-color: #ff4444; }
+  16% { border-color: #ff8800; }
+  33% { border-color: #ffcc00; }
+  50% { border-color: #22cc44; }
+  66% { border-color: #4488ff; }
+  83% { border-color: #aa44ff; }
+  100% { border-color: #ff4444; }
+}
+.shop-item.crown-item {
+  background: linear-gradient(135deg, #0d0015, #100020);
+  border: 2px solid #ff4444;
+  animation: rainbowBorder 3s linear infinite;
+  box-shadow: inset 0 0 20px rgba(255,255,255,0.03), 0 0 15px rgba(255,100,100,0.1);
+}
+.shop-item.crown-item:hover:not(.shop-item-disabled) {
+  background: linear-gradient(135deg, #150025, #1a0030);
+  box-shadow: inset 0 0 20px rgba(255,255,255,0.05), 0 0 25px rgba(255,100,100,0.2);
+}
+.item-name.crown-name {
+  background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: goldShimmer 2s linear infinite;
+}
+.buy-btn.crown-btn {
+  background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
+  background-size: 300% auto;
+  animation: goldShimmer 2s linear infinite;
+  color: #fff;
+  font-weight: 900;
+  box-shadow: 0 2px 12px rgba(255,100,100,0.3);
+}
+
+/* 排行榜皇冠特效 */
+.lb-crown-row {
+  background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05)) !important;
+  border: 1px solid rgba(255,215,0,0.3);
+}
+.lb-crown {
+  background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: goldShimmer 2s linear infinite;
+  font-weight: 700;
+}
+
 /* ══════ 海淀特供金皮肤 ══════ */
 
 @keyframes goldShimmer {
@@ -882,6 +934,14 @@ const shopItemDefs = [
     apply: () => { grantRandomPet(); },
   },
   {
+    id: 'crown', name: '👑 让你的排行榜变得超酷炫！', desc: '全服仅限一人，买到即绝版',
+    getPrice: () => 99999,
+    getExtra: () => '',
+    canBuy: () => window._crownOwner === null,
+    apply: () => { /* handled in buy handler via Firebase transaction */ },
+    isCrown: true,
+  },
+  {
     id: 'skin',
     get name() { return state.hasSkin ? '恢复经典皮肤' : '海淀特供金币皮肤'; },
     get desc() { return state.hasSkin ? '回到最初的样子' : '买了就知道了~'; },
@@ -922,6 +982,19 @@ const resultText = document.getElementById('resultText');
 const codexGrid = document.getElementById('codexGrid');
 const codexCount = document.getElementById('codexCount');
 const gameEl = document.getElementById('game');
+
+window._crownOwner = null;
+
+function showCrownNotify(success) {
+  const div = document.createElement('div');
+  div.className = 'pet-notify';
+  div.innerHTML = success
+    ? '<div style="font-size:48px;margin-bottom:12px;">👑</div><div class="pet-notify-name" style="color:#ffd700;">你是唯一的王者！</div><div class="pet-notify-hint">排行榜已解锁专属彩虹特效</div>'
+    : '<div style="font-size:48px;margin-bottom:12px;">😢</div><div class="pet-notify-name" style="color:#ff6b6b;">已被其他玩家抢先一步！</div><div class="pet-notify-hint">金币已退还</div>';
+  document.body.appendChild(div);
+  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.5s'; }, 2500);
+  setTimeout(() => div.remove(), 3000);
+}
 
 // ── Init Dots ──
 (function initDots() {
@@ -1122,27 +1195,49 @@ function renderShop() {
   shopItemsEl.innerHTML = '';
 
   shopItemDefs.forEach(item => {
+    // 皇冠商品：已被购买或Firebase未就绪时隐藏
+    if (item.id === 'crown' && (window._crownOwner !== null || !window._firebaseReady)) return;
     const price = item.getPrice();
     const canAfford = state.gold >= price;
     const canBuy = item.canBuy() && canAfford;
     const div = document.createElement('div');
-    div.className = 'shop-item' + (canBuy ? '' : ' shop-item-disabled') + (item.isMystery ? ' mystery-item' : '') + (item.id === 'skin' ? ' skin-item' : '');
+    div.className = 'shop-item' + (canBuy ? '' : ' shop-item-disabled') + (item.isMystery ? ' mystery-item' : '') + (item.id === 'skin' ? ' skin-item' : '') + (item.id === 'crown' ? ' crown-item' : '');
 
     const extra = item.getExtra();
     div.innerHTML = `
       <div class="item-info">
-        <div class="item-name${item.isMystery ? ' mystery' : ''}${item.id === 'skin' ? ' skin-name' : ''}">${item.name}</div>
+        <div class="item-name${item.isMystery ? ' mystery' : ''}${item.id === 'skin' ? ' skin-name' : ''}${item.id === 'crown' ? ' crown-name' : ''}">${item.name}</div>
         <div class="item-desc">${item.desc}</div>
         ${extra ? `<div class="item-extra">${extra}</div>` : ''}
       </div>
-      <button class="buy-btn${item.isMystery ? ' mystery-btn' : ''}${item.id === 'skin' ? ' skin-btn' : ''}" ${canBuy ? '' : 'disabled'}>${price}g</button>
+      <button class="buy-btn${item.isMystery ? ' mystery-btn' : ''}${item.id === 'skin' ? ' skin-btn' : ''}${item.id === 'crown' ? ' crown-btn' : ''}" ${canBuy ? '' : 'disabled'}>${price}g</button>
     `;
 
-    div.querySelector('.buy-btn').addEventListener('click', () => {
+    div.querySelector('.buy-btn').addEventListener('click', async () => {
       const curPrice = item.getPrice();
       if (!item.canBuy() || state.gold < curPrice) return;
       state.gold -= curPrice;
       state.totalSpent += curPrice;
+      if (item.id === 'crown') {
+        // Firebase transaction 保证原子性
+        updateUI(); saveGame();
+        const ref = firebase.database().ref('crown');
+        const { committed } = await ref.transaction(current => {
+          if (current === null) return player.id;
+          return; // abort
+        });
+        if (committed) {
+          window._crownOwner = player.id;
+          showCrownNotify(true);
+        } else {
+          // 被抢了，退款
+          state.gold += curPrice;
+          state.totalSpent -= curPrice;
+          showCrownNotify(false);
+        }
+        updateUI(); saveGame(); renderShop();
+        return;
+      }
       item.apply();
       updateUI(); saveGame(); renderShop();
     });
@@ -1544,6 +1639,12 @@ function initFirebase() {
   });
   const db = firebase.database();
 
+  // ── Crown monitoring ──
+  db.ref('crown').on('value', snap => {
+    window._crownOwner = snap.val();
+    if (!shopOverlay.classList.contains('hidden')) renderShop();
+  });
+
   // ── Sync to Firebase ──
   window.syncLeaderboard = function() {
     db.ref('players/' + player.id).set({
@@ -1574,9 +1675,13 @@ function initFirebase() {
   function renderRow(d, rank, field, isMe) {
     const label = field === 'totalSpent' ? 'g' : '次';
     const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-    return `<div class="lb-row${isMe ? ' lb-me' : ''}">
+    const isCrown = d._pid === window._crownOwner;
+    const rowCls = 'lb-row' + (isMe ? ' lb-me' : '') + (isCrown ? ' lb-crown-row' : '');
+    const nameCls = 'lb-name' + (isCrown ? ' lb-crown' : '');
+    const nameText = isCrown ? '👑 ' + d.nickname : d.nickname;
+    return `<div class="${rowCls}">
       <span class="lb-rank">${medal}</span>
-      <span class="lb-name">${d.nickname}</span>
+      <span class="${nameCls}">${nameText}</span>
       <span class="lb-val">${d[field]}${label}</span>
     </div>`;
   }
@@ -1601,7 +1706,7 @@ function initFirebase() {
     if (!listEl.innerHTML) listEl.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.4);padding:20px;">加载中...</div>';
     listEl.style.opacity = '0.5';
     const snap = await db.ref('players').orderByChild(field).once('value');
-    const list = []; snap.forEach(c => { list.push(c.val()); });
+    const list = []; snap.forEach(c => { const v = c.val(); v._pid = c.key; list.push(v); });
     listEl.innerHTML = renderListHTML(list.reverse(), field);
     listEl.style.opacity = '1';
   }
