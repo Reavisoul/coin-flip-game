@@ -489,6 +489,10 @@ body {
 }
 
 /* 皇冠商店项 - 彩虹 */
+@keyframes rainbowShimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: -200% center; }
+}
 @keyframes rainbowBorder {
   0% { border-color: #ff4444; }
   16% { border-color: #ff8800; }
@@ -514,12 +518,12 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: goldShimmer 2s linear infinite;
+  animation: rainbowShimmer 2s linear infinite;
 }
 .buy-btn.crown-btn {
   background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
-  background-size: 300% auto;
-  animation: goldShimmer 2s linear infinite;
+  background-size: 200% auto;
+  animation: rainbowShimmer 2s linear infinite;
   color: #fff;
   font-weight: 900;
   box-shadow: 0 2px 12px rgba(255,100,100,0.3);
@@ -536,7 +540,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: goldShimmer 2s linear infinite;
+  animation: rainbowShimmer 2s linear infinite;
   font-weight: 700;
 }
 
@@ -1395,10 +1399,10 @@ function spawnPetOnScreen(pet) {
     el.style.top = (t.clientY - poy) + 'px';
   });
   window.addEventListener('mouseup', () => {
-    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = ''; wanderTimer = setTimeout(wander, 3000); }
+    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = '1500'; wanderTimer = setTimeout(wander, 3000); }
   });
   window.addEventListener('touchend', () => {
-    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = ''; wanderTimer = setTimeout(wander, 3000); }
+    if (petDragging) { petDragging = false; el.style.transition = ''; el.style.zIndex = '1500'; wanderTimer = setTimeout(wander, 3000); }
   });
 
   el.addEventListener('click', () => {
