@@ -460,6 +460,204 @@ body {
 .panel::-webkit-scrollbar { width: 4px; }
 .panel::-webkit-scrollbar-track { background: transparent; }
 .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+/* ══════ 海淀特供金皮肤 ══════ */
+
+@keyframes goldShimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+@keyframes goldParticleFloat {
+  0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+  10%  { opacity: 0.8; }
+  50%  { transform: translateY(50vh) translateX(30px); }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-10vh) translateX(-20px); opacity: 0; }
+}
+@keyframes goldDust {
+  0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+  15%  { opacity: 0.5; }
+  50%  { transform: translateY(40vh) translateX(-25px); }
+  85%  { opacity: 0.4; }
+  100% { transform: translateY(-10vh) translateX(15px); opacity: 0; }
+}
+@keyframes goldPulseGlow {
+  0%, 100% { box-shadow: 0 0 30px rgba(255,215,0,0.2), 0 0 60px rgba(255,215,0,0.1); }
+  50% { box-shadow: 0 0 50px rgba(255,215,0,0.4), 0 0 100px rgba(255,215,0,0.2); }
+}
+@keyframes goldBorderPulse {
+  0%, 100% { border-color: rgba(255,215,0,0.15); }
+  50% { border-color: rgba(255,215,0,0.4); }
+}
+@keyframes goldSparkle {
+  0%, 100% { transform: scale(1.1); box-shadow: 0 0 12px rgba(255,215,0,0.5); }
+  50% { transform: scale(1.2); box-shadow: 0 0 24px rgba(255,215,0,0.9), 0 0 48px rgba(255,215,0,0.3); }
+}
+
+/* 背景 */
+body.skin-gold {
+  background: linear-gradient(135deg, #1a1000, #2a1f00, #1a1500, #0d0a00);
+}
+
+/* 金色粒子 - 第一层 */
+body.skin-gold::before {
+  content: '';
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+  background-image:
+    radial-gradient(circle, rgba(255,215,0,0.8) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,200,50,0.6) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,230,100,0.7) 1px, transparent 1px);
+  background-size: 80px 120px, 130px 170px, 200px 210px;
+  background-position: 20px 30px, 60px 80px, 100px 40px;
+  animation: goldParticleFloat 8s linear infinite;
+  will-change: transform;
+}
+
+/* 金色粒子 - 第二层（视差） */
+body.skin-gold::after {
+  content: '';
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+  background-image:
+    radial-gradient(circle, rgba(255,215,0,0.5) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(255,180,0,0.4) 1px, transparent 1px);
+  background-size: 110px 150px, 170px 220px;
+  background-position: 40px 60px, 90px 20px;
+  animation: goldDust 12s linear infinite;
+  will-change: transform;
+}
+
+/* 硬币增强 */
+body.skin-gold .coin-front {
+  box-shadow:
+    inset 0 -4px 8px rgba(0,0,0,0.2),
+    inset 0 4px 8px rgba(255,255,255,0.3),
+    0 0 40px rgba(255,215,0,0.5),
+    0 0 80px rgba(255,215,0,0.25),
+    0 0 120px rgba(255,215,0,0.1);
+  border-color: #ffd700;
+}
+body.skin-gold .coin-back {
+  background: radial-gradient(circle at 35% 35%, #ffd700, #c8a200 40%, #8b7000 100%);
+  color: #5a3e00;
+  border-color: #b8960f;
+  box-shadow:
+    inset 0 -4px 8px rgba(0,0,0,0.3),
+    inset 0 4px 8px rgba(255,255,255,0.2),
+    0 0 30px rgba(255,215,0,0.4),
+    0 0 60px rgba(255,215,0,0.15);
+}
+body.skin-gold .coin-area {
+  animation: goldPulseGlow 2.5s ease-in-out infinite;
+  border-radius: 50%;
+}
+
+/* 状态栏 */
+body.skin-gold .stats {
+  border: 1px solid rgba(255,215,0,0.2);
+  box-shadow: 0 0 20px rgba(255,215,0,0.08), inset 0 0 20px rgba(255,215,0,0.03);
+  background: rgba(255,215,0,0.06);
+  animation: goldBorderPulse 3s ease-in-out infinite;
+}
+
+/* 按钮 */
+body.skin-gold .flip-btn {
+  background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
+  background-size: 200% auto;
+  animation: goldShimmer 3s linear infinite;
+  box-shadow: 0 4px 20px rgba(255,215,0,0.4), 0 0 40px rgba(255,215,0,0.12);
+}
+body.skin-gold .count-btn {
+  background: linear-gradient(135deg, #ffd700, #b8860b);
+  box-shadow: 0 2px 10px rgba(255,215,0,0.2);
+}
+body.skin-gold .shop-btn,
+body.skin-gold .codex-btn {
+  border-color: rgba(255,215,0,0.25);
+  box-shadow: 0 0 10px rgba(255,215,0,0.08);
+}
+body.skin-gold .shop-btn:hover,
+body.skin-gold .codex-btn:hover {
+  border-color: rgba(255,215,0,0.5);
+  box-shadow: 0 0 20px rgba(255,215,0,0.15);
+  background: rgba(255,215,0,0.1);
+}
+body.skin-gold .buy-btn {
+  background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
+  background-size: 200% auto;
+  animation: goldShimmer 3s linear infinite;
+  box-shadow: 0 2px 12px rgba(255,215,0,0.3);
+}
+body.skin-gold .stop-btn {
+  box-shadow: 0 4px 16px rgba(255,68,68,0.3), 0 0 20px rgba(255,215,0,0.1);
+}
+
+/* 面板标题流光 */
+body.skin-gold .panel-title {
+  background: linear-gradient(90deg, #b8860b, #ffd700, #fff8dc, #ffd700, #b8860b);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: goldShimmer 3s linear infinite;
+}
+
+/* 面板 */
+body.skin-gold .panel {
+  border: 1px solid rgba(255,215,0,0.2);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(255,215,0,0.08);
+  background: linear-gradient(135deg, #1a1500, #2a2000);
+}
+body.skin-gold .shop-item {
+  border-color: rgba(255,215,0,0.08);
+}
+body.skin-gold .shop-item:hover:not(.shop-item-disabled) {
+  border-color: rgba(255,215,0,0.25);
+  background: rgba(255,215,0,0.05);
+}
+
+/* 连击进度 */
+body.skin-gold .dot {
+  border-color: rgba(255,215,0,0.15);
+  background: rgba(255,215,0,0.04);
+}
+body.skin-gold .dot.active {
+  box-shadow: 0 0 16px rgba(255,215,0,0.6), 0 0 32px rgba(255,215,0,0.25);
+  animation: goldSparkle 1.5s ease-in-out infinite;
+}
+body.skin-gold .streak-label { color: rgba(255,215,0,0.45); }
+
+/* 介绍文字 */
+body.skin-gold .game > div:first-child { color: rgba(255,215,0,0.4); }
+
+/* 标签 */
+body.skin-gold .stat-label { color: rgba(255,215,0,0.4); }
+body.skin-gold .result-text.heads-result { text-shadow: 0 0 12px rgba(255,215,0,0.5); }
+
+/* 关闭按钮 */
+body.skin-gold .close-btn {
+  border-color: rgba(255,215,0,0.15);
+  color: rgba(255,215,0,0.5);
+}
+body.skin-gold .close-btn:hover {
+  border-color: rgba(255,215,0,0.3);
+  color: #ffd700;
+  background: rgba(255,215,0,0.08);
+}
+
+/* 金色滚动条 */
+body.skin-gold .panel::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.25); }
+
+/* 宝箱金色强化 */
+body.skin-gold .chest {
+  border-color: rgba(255,215,0,0.3);
+}
+body.skin-gold .chest.chest-ready {
+  box-shadow: 0 0 20px rgba(255,215,0,0.7), 0 0 40px rgba(255,215,0,0.3);
+}
 </style>
 </head>
 <body>
@@ -648,25 +846,6 @@ const shopItemDefs = [
     apply: () => { state.pityLevel++; },
   },
   {
-    id: 'skin',
-    get name() { return state.hasSkin ? '恢复经典皮肤' : '海淀特供金币皮肤'; },
-    get desc() { return state.hasSkin ? '回到最初的样子' : '买了就知道了~'; },
-    getPrice: () => state.hasSkin ? 3000000 : 8888,
-    getExtra: () => '',
-    canBuy: () => true,
-    apply: () => {
-      if (state.hasSkin) {
-        state.hasSkin = false;
-        document.querySelector('.coin-front').textContent = '正';
-        document.querySelector('.coin-back').textContent = '反';
-      } else {
-        state.hasSkin = true;
-        document.querySelector('.coin-front').textContent = '👍';
-        document.querySelector('.coin-back').textContent = '🖕';
-      }
-    },
-  },
-  {
     id: 'combo', name: '连击加成', desc: '连击额外获得金币',
     getPrice: () => Math.floor(100 + state.comboLevel * 200 + state.comboLevel * state.comboLevel * 120),
     getExtra: () => state.comboLevel > 0 ? `当前等级 ${state.comboLevel} (10连额外 +${45 * state.comboLevel}g)` : '',
@@ -679,6 +858,27 @@ const shopItemDefs = [
     getExtra: () => { const n = state.pets.filter(id => id < 7).length; const kinds = new Set(state.pets.filter(id => id < 7)).size; const pity = kinds < 7 ? ` · 保底 ${state.eggPity}/10` : ''; return n > 0 ? `${kinds}种/${n}只${pity}` : ''; },
     canBuy: () => true,
     apply: () => { grantRandomPet(); },
+  },
+  {
+    id: 'skin',
+    get name() { return state.hasSkin ? '恢复经典皮肤' : '海淀特供金币皮肤'; },
+    get desc() { return state.hasSkin ? '回到最初的样子' : '买了就知道了~'; },
+    getPrice: () => state.hasSkin ? 3000000 : 8888,
+    getExtra: () => '',
+    canBuy: () => true,
+    apply: () => {
+      if (state.hasSkin) {
+        state.hasSkin = false;
+        document.body.classList.remove('skin-gold');
+        document.querySelector('.coin-front').textContent = '正';
+        document.querySelector('.coin-back').textContent = '反';
+      } else {
+        state.hasSkin = true;
+        document.body.classList.add('skin-gold');
+        document.querySelector('.coin-front').textContent = '👍';
+        document.querySelector('.coin-back').textContent = '🖕';
+      }
+    },
   },
 ];
 
@@ -1242,7 +1442,7 @@ function checkUpdate() {
 
 // ── Init ──
 loadGame();
-if (state.hasSkin) { document.querySelector('.coin-front').textContent = '👍'; document.querySelector('.coin-back').textContent = '🖕'; }
+if (state.hasSkin) { document.body.classList.add('skin-gold'); document.querySelector('.coin-front').textContent = '👍'; document.querySelector('.coin-back').textContent = '🖕'; }
 updateUI();
 restoreAllPets();
 checkUpdate();
