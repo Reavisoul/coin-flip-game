@@ -493,20 +493,27 @@ body {
   from { background-position: 0 center; }
   to { background-position: -1000px center; }
 }
-@keyframes rainbowBorder {
-  0% { border-color: #ff4444; }
-  16% { border-color: #ff8800; }
-  33% { border-color: #ffcc00; }
-  50% { border-color: #22cc44; }
-  66% { border-color: #4488ff; }
-  83% { border-color: #aa44ff; }
-  100% { border-color: #ff4444; }
-}
 .shop-item.crown-item {
   background: linear-gradient(135deg, #0d0015, #100020);
-  border: 2px solid #ff4444;
-  animation: rainbowBorder 3s linear infinite;
+  border: none;
+  position: relative;
   box-shadow: inset 0 0 20px rgba(255,255,255,0.03), 0 0 15px rgba(255,100,100,0.1);
+}
+.shop-item.crown-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 2px;
+  background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
+  background-size: 200px auto;
+  background-repeat: repeat-x;
+  animation: rainbowShimmer 3s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 .shop-item.crown-item:hover:not(.shop-item-disabled) {
   background: linear-gradient(135deg, #150025, #1a0030);
@@ -534,7 +541,24 @@ body {
 /* 排行榜皇冠特效 */
 .lb-crown-row {
   background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05)) !important;
-  border: 1px solid rgba(255,215,0,0.3);
+  border: none;
+  position: relative;
+}
+.lb-crown-row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 1.5px;
+  background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
+  background-size: 200px auto;
+  background-repeat: repeat-x;
+  animation: rainbowShimmer 3s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 .lb-crown {
   background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
@@ -1542,7 +1566,8 @@ function calcMaxEarnable() {
 function checkCheat() {
   if (state.totalFlips < 10) return; // 太少不检测
   const totalEarned = state.gold + state.totalSpent;
-  if (totalEarned <= calcMaxEarnable()) return;
+  const maxEarnable = calcMaxEarnable();
+  if (totalEarned <= maxEarnable || totalEarned - maxEarnable < 20000) return;
 
   // 弹窗
   const div = document.createElement('div');
