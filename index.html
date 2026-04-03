@@ -1508,6 +1508,7 @@ function spawnConfetti() {
 const SAVE_KEY = 'coin_flip_save';
 
 function saveGame() {
+  checkCheat();
   localStorage.setItem(SAVE_KEY, JSON.stringify({
     gold: state.gold, streak: state.streak,
     headsProb: state.headsProb, goldPerHeads: state.goldPerHeads,
@@ -1517,6 +1518,48 @@ function saveGame() {
     goldLevel: state.goldLevel, pityLevel: state.pityLevel,
     tailStreak: state.tailStreak, totalSpent: state.totalSpent, hasSkin: state.hasSkin, comboLevel: state.comboLevel, eggPity: state.eggPity, pets: state.pets,
   }));
+}
+
+// ── Anti-Cheat ──
+function calcMaxEarnable() {
+  if (state.totalFlips === 0) return Infinity;
+  // 假设每次都是正面、最大连击：goldPerHeads + 每次最大连击加成
+  const maxPerFlip = state.goldPerHeads + 10 * state.comboLevel;
+  // 宝箱：最多 ceil(totalFlips/10) 次开宝箱
+  const maxCompletions = Math.ceil(state.totalFlips / 10);
+  let maxChest = 0;
+  for (let c = 1; c <= maxCompletions; c++) {
+    maxChest += 50 + c * 20 + c * c * 5;
+  }
+  // 保底：每10次反面触发，最多 floor(totalFlips/10) 次
+  const maxPity = Math.floor(state.totalFlips / 10) * state.pityLevel * 3;
+  return state.totalFlips * maxPerFlip + maxChest + maxPity;
+}
+
+function checkCheat() {
+  if (state.totalFlips < 10) return; // 太少不检测
+  const totalEarned = state.gold + state.totalSpent;
+  if (totalEarned <= calcMaxEarnable()) return;
+
+  // 弹窗
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;';
+  div.innerHTML = `
+    <div style="background:linear-gradient(135deg,#1e0000,#2a0000);border:2px solid #ff4444;border-radius:20px;padding:32px 40px;text-align:center;max-width:320px;">
+      <div style="font-size:48px;margin-bottom:16px;">🚨</div>
+      <div style="font-size:18px;font-weight:700;color:#ff6b6b;margin-bottom:10px;">检测到数据异常</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:24px;line-height:1.6;">存档数据与投掷次数不符，<br>将重置为初始状态。</div>
+      <button id="cheatConfirmBtn" style="padding:10px 32px;background:linear-gradient(135deg,#ff4444,#cc2222);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;">确认</button>
+    </div>
+  `;
+  document.body.appendChild(div);
+  document.getElementById('cheatConfirmBtn').addEventListener('click', () => {
+    localStorage.removeItem(SAVE_KEY);
+    if (window._firebaseReady) {
+      firebase.database().ref('players/' + player.id).remove();
+    }
+    location.reload();
+  });
 }
 
 function loadGame() {
@@ -1572,6 +1615,7 @@ function checkUpdate() {
 
 // ── Init ──
 loadGame();
+checkCheat();
 if (state.hasSkin) { document.body.classList.add('skin-gold'); document.querySelector('.coin-front').textContent = '👍'; document.querySelector('.coin-back').textContent = '🖕'; }
 updateUI();
 restoreAllPets();
