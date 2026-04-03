@@ -490,8 +490,8 @@ body {
 
 /* 皇冠商店项 - 彩虹 */
 @keyframes rainbowShimmer {
-  0% { background-position: 0% center; }
-  100% { background-position: -200% center; }
+  from { background-position: 0 center; }
+  to { background-position: -1000px center; }
 }
 @keyframes rainbowBorder {
   0% { border-color: #ff4444; }
@@ -514,16 +514,18 @@ body {
 }
 .item-name.crown-name {
   background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
-  background-size: 200% auto;
+  background-size: 200px auto;
+  background-repeat: repeat-x;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: rainbowShimmer 2s linear infinite;
+  animation: rainbowShimmer 3s linear infinite;
 }
 .buy-btn.crown-btn {
   background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
-  background-size: 200% auto;
-  animation: rainbowShimmer 2s linear infinite;
+  background-size: 200px auto;
+  background-repeat: repeat-x;
+  animation: rainbowShimmer 3s linear infinite;
   color: #fff;
   font-weight: 900;
   box-shadow: 0 2px 12px rgba(255,100,100,0.3);
@@ -536,11 +538,12 @@ body {
 }
 .lb-crown {
   background: linear-gradient(90deg, #ff4444, #ff8800, #ffcc00, #22cc44, #4488ff, #aa44ff, #ff4444);
-  background-size: 200% auto;
+  background-size: 200px auto;
+  background-repeat: repeat-x;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: rainbowShimmer 2s linear infinite;
+  animation: rainbowShimmer 3s linear infinite;
   font-weight: 700;
 }
 
