@@ -1225,16 +1225,22 @@ function renderShop() {
       if (item.id === 'crown') {
         // Firebase transaction 保证原子性
         updateUI(); saveGame();
-        const ref = firebase.database().ref('crown');
-        const { committed } = await ref.transaction(current => {
-          if (current === null) return player.id;
-          return; // abort
-        });
-        if (committed) {
-          window._crownOwner = player.id;
-          showCrownNotify(true);
-        } else {
-          // 被抢了，退款
+        try {
+          const ref = firebase.database().ref('crown');
+          const result = await ref.transaction(current => {
+            if (current === null) return player.id;
+            return undefined; // abort
+          });
+          if (result.committed) {
+            window._crownOwner = player.id;
+            showCrownNotify(true);
+          } else {
+            state.gold += curPrice;
+            state.totalSpent -= curPrice;
+            showCrownNotify(false);
+          }
+        } catch (e) {
+          console.error('Crown transaction failed:', e);
           state.gold += curPrice;
           state.totalSpent -= curPrice;
           showCrownNotify(false);
